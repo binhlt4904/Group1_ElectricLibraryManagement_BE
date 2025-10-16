@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import java.sql.Timestamp;
 
 @Entity
-@Table(name = "Review")
+@Table(name = "review")
 public class Review {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -15,7 +15,9 @@ public class Review {
     private Integer rate;
     private Timestamp createdDate;
 
-    @ManyToOne
-    @JoinColumn(name = "book_code", referencedColumnName = "bookCode")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "book_id", referencedColumnName = "id", nullable = false)
     private Book book;
+
+
 }

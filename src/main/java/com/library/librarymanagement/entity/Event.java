@@ -11,19 +11,19 @@ public class Event {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "created_date")
-    private Date createdDate;
-
-    @Column(name = "description")
-    private String description;
-
-    @Column(name = "title")
+    @Column(name = "title", length = 255)
     private String title;
 
-    // Quan hệ: nhiều event thuộc 1 account
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "from_user", referencedColumnName = "id") // foreign key đến account.id
+    @Column(name = "description", length = 255)
+    private String description;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "created_date")
+    private java.util.Date createdDate;
+
+    // Nhiều event thuộc 1 account; cột FK là from_user
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "from_user", referencedColumnName = "id", nullable = false)
     private Account account;
 
 }

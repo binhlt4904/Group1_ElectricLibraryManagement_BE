@@ -29,9 +29,10 @@ public class BorrowRecord {
     @JoinColumn(name = "library_card_id")
     private LibraryCard libraryCard;
 
-    @ManyToOne
-    @JoinColumn(name = "bookId")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "book_id", referencedColumnName = "id", nullable = false)
     private Book book;
+
 
     @OneToOne
     @JoinColumn(name = "returned_record_id")

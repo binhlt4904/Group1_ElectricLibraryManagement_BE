@@ -6,13 +6,15 @@ import java.util.Date;
 import java.util.Set;
 
 @Entity
-@Table(name = "library_card") // nên dùng snake_case để khớp DB thực tế
+@Table(name = "library_card")
 public class LibraryCard {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "card_number", unique = true, nullable = false) // cột được tham chiếu
+    // ✅ Cột card_number (unique)
+    @Column(name = "card_number", length = 20, nullable = false, unique = true)
     private String cardNumber;
 
     @Temporal(TemporalType.DATE)
@@ -23,13 +25,8 @@ public class LibraryCard {
     @Column(name = "expiry_date")
     private Date expiryDate;
 
+    @Column(name = "status", length = 255)
     private String status;
-
-    @Column(name = "created_date")
-    private Timestamp createdDate;
-
-    @Column(name = "updated_date")
-    private Timestamp updatedDate;
 
     @Column(name = "created_by")
     private Long createdBy;
@@ -37,20 +34,23 @@ public class LibraryCard {
     @Column(name = "updated_by")
     private Long updatedBy;
 
+    @Column(name = "created_date")
+    private Timestamp createdDate;
+
+    @Column(name = "updated_date")
+    private Timestamp updatedDate;
+
     @Column(name = "is_deleted")
     private Boolean isDeleted;
 
-    // ---------------------------
-    // Relationships
-    // ---------------------------
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "reader_id")
+    // ✅ Một thẻ thư viện thuộc về một người đọc
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "reader_id", referencedColumnName = "id", nullable = false)
     private Reader reader;
 
-    @OneToMany(mappedBy = "libraryCard")
-    private Set<BorrowRecord> borrowRecords;
-
-    @OneToMany(mappedBy = "libraryCard", cascade = CascadeType.ALL, orphanRemoval = true)
+    // ✅ Một thẻ thư viện có thể có nhiều chi tiết gia hạn
+    @OneToMany(mappedBy = "libraryCard", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<CardRenewalDetails> renewalDetails;
+
+    // getters/setters ...
 }

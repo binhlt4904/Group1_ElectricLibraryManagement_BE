@@ -3,37 +3,53 @@ package com.library.librarymanagement.entity;
 import jakarta.persistence.*;
 import java.util.Date;
 import java.util.Set;
-
 @Entity
-@Table(name = "Book")
+@Table(
+        name = "book",
+        uniqueConstraints = @UniqueConstraint(name = "UQ_book_code", columnNames = "book_code")
+)
 public class Book {
-    @Id
-    private String bookCode;
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;                       // PK cho tất cả quan hệ
+
+    @Column(name = "book_code", nullable = false, length = 100)
+    private String bookCode;               // SKU / mã sản phẩm (unique ở constraint trên)
+
+    @Column(name = "title", length = 255)
     private String title;
+
+    @Column(name = "description")
     private String description;
+
     @Temporal(TemporalType.DATE)
+    @Column(name = "imported_date")
     private Date importedDate;
+
+    @Column(name = "is_deleted")
     private Boolean isDeleted;
 
-    @ManyToOne
-    @JoinColumn(name = "author_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "author_id", referencedColumnName = "id")
     private Author author;
 
-    @ManyToOne
-    @JoinColumn(name = "publisher_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "publisher_id", referencedColumnName = "id")
     private Publisher publisher;
 
-    @ManyToOne
-    @JoinColumn(name = "Categoryname")
+    // ERD: Category join theo name
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_name", referencedColumnName = "name")
     private Category category;
 
-    @OneToMany(mappedBy = "book")
+    @OneToMany(mappedBy = "book", fetch = FetchType.LAZY)
     private Set<BookContent> contents;
 
-    @OneToMany(mappedBy = "book")
+    @OneToMany(mappedBy = "book", fetch = FetchType.LAZY)
     private Set<Report> reports;
 
-    @OneToMany(mappedBy = "book")
+    @OneToMany(mappedBy = "book", fetch = FetchType.LAZY)
     private Set<Review> reviews;
+
 }

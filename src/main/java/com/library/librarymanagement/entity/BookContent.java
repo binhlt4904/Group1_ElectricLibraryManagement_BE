@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import java.sql.Timestamp;
 
 @Entity
-@Table(name = "BookContent")
+@Table(name = "book_content")
 public class BookContent {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,7 +22,9 @@ public class BookContent {
     private Long createdBy;
     private Long updatedBy;
 
-    @ManyToOne
-    @JoinColumn(name = "book_code", referencedColumnName = "bookCode")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "book_id", referencedColumnName = "id", nullable = false)
     private Book book;
+
+
 }
