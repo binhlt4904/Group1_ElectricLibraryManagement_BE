@@ -32,15 +32,14 @@ public class Account {
     @Column(name = "phone", length = 20)
     private String phone;
 
-    // 1-1 với Reader (FK ở bảng reader.account_id)
     @OneToOne(mappedBy = "account", fetch = FetchType.LAZY)
     private Reader reader;
 
-    // 1-1 với SystemUser (FK ở bảng system_user.account_id)
     @OneToOne(mappedBy = "account", fetch = FetchType.LAZY)
     private SystemUser systemUser;
 
-    // 1-n với Role (FK ở role.account_id)
     @OneToMany(mappedBy = "account", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = false)
     private Set<Role> roles;
+
+
 }

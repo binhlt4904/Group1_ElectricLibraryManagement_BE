@@ -36,4 +36,7 @@ public class Reader {
 
     @OneToOne(mappedBy = "reader", fetch = FetchType.LAZY, optional = false)
     private LibraryCard libraryCard;
+
+    @OneToOne(mappedBy = "reader", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = false)
+    private Wallet wallet;
 }
