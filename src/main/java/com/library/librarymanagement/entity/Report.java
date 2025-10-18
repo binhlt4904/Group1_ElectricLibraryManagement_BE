@@ -1,10 +1,13 @@
 package com.library.librarymanagement.entity;
 
 import jakarta.persistence.*;
+import lombok.Data;
+
 import java.sql.Timestamp;
 
 @Entity
 @Table(name = "report")
+@Data
 public class Report {
 
     @Id
@@ -14,12 +17,6 @@ public class Report {
     @Column(name = "title", length = 255)
     private String title;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "book_id", referencedColumnName = "id", nullable = false)
-    private Book book;
-
-
-    // ✅ N report -> 1 reader (created_by -> reader.id)
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "created_by", referencedColumnName = "id", nullable = false)
     private Reader createdBy;
@@ -33,7 +30,6 @@ public class Report {
     @Column(name = "status", length = 255)
     private String status;
 
-    // confirmed_by vẫn là Account (nếu ERD như hình)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "confirmed_by", referencedColumnName = "id")
     private Account confirmedBy;

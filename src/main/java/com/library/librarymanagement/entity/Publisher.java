@@ -1,11 +1,14 @@
 package com.library.librarymanagement.entity;
 
 import jakarta.persistence.*;
+import lombok.Data;
+
 import java.sql.Timestamp;
 import java.util.Set;
 
 @Entity
-@Table(name = "Publisher")
+@Table(name = "publisher")
+@Data
 public class Publisher {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -1,11 +1,14 @@
 package com.library.librarymanagement.entity;
 
 import jakarta.persistence.*;
+import lombok.Data;
+
 import java.sql.Timestamp;
 import java.util.Date;
 
 @Entity
-@Table(name = "BorrowRecord")
+@Table(name = "borrow_record")
+@Data
 public class BorrowRecord {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,14 +28,13 @@ public class BorrowRecord {
     private Long createdBy;
     private Long updatedBy;
 
-    @ManyToOne
-    @JoinColumn(name = "library_card_id")
-    private LibraryCard libraryCard;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "book_id", referencedColumnName = "id", nullable = false)
     private Book book;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "library_card_id", referencedColumnName = "id", nullable = false)
+    private LibraryCard libraryCard;
 
     @OneToOne
     @JoinColumn(name = "returned_record_id")

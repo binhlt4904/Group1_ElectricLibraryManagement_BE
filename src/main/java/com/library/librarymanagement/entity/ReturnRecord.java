@@ -1,11 +1,14 @@
 package com.library.librarymanagement.entity;
 
 import jakarta.persistence.*;
+import lombok.Data;
+
 import java.sql.Timestamp;
 import java.util.Date;
 
 @Entity
-@Table(name = "ReturnRecord")
+@Table(name = "return_record")
+@Data
 public class ReturnRecord {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

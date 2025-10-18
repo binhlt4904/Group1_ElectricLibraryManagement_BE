@@ -1,10 +1,13 @@
 package com.library.librarymanagement.entity;
 
 import jakarta.persistence.*;
+import lombok.Data;
+
 import java.sql.Timestamp;
 
 @Entity
-@Table(name = "Notification")
+@Table(name = "notification")
+@Data
 public class Notification {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

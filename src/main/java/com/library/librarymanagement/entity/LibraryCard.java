@@ -1,12 +1,15 @@
 package com.library.librarymanagement.entity;
 
 import jakarta.persistence.*;
+import lombok.Data;
+
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.Set;
 
 @Entity
 @Table(name = "library_card")
+@Data
 public class LibraryCard {
 
     @Id
@@ -43,14 +46,15 @@ public class LibraryCard {
     @Column(name = "is_deleted")
     private Boolean isDeleted;
 
-    // ✅ Một thẻ thư viện thuộc về một người đọc
+
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reader_id", referencedColumnName = "id", nullable = false)
     private Reader reader;
 
-    // ✅ Một thẻ thư viện có thể có nhiều chi tiết gia hạn
+
     @OneToMany(mappedBy = "libraryCard", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<CardRenewalDetails> renewalDetails;
 
-    // getters/setters ...
+    @OneToMany(mappedBy = "libraryCard", fetch = FetchType.LAZY)
+    private Set<BorrowRecord> borrowRecords;
 }

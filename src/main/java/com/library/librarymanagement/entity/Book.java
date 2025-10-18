@@ -38,7 +38,6 @@ public class Book {
     @JoinColumn(name = "publisher_id", referencedColumnName = "id")
     private Publisher publisher;
 
-    // ERD: Category join theo name
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_name", referencedColumnName = "name")
     private Category category;
@@ -47,7 +46,7 @@ public class Book {
     private Set<BookContent> contents;
 
     @OneToMany(mappedBy = "book", fetch = FetchType.LAZY)
-    private Set<Report> reports;
+    private Set<BorrowRecord> borrowRecords;
 
     @OneToMany(mappedBy = "book", fetch = FetchType.LAZY)
     private Set<Review> reviews;

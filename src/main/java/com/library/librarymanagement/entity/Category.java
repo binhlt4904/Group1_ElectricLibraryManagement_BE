@@ -33,9 +33,10 @@ public class Category {
     @Column(name = "updated_by")
     private Long updatedBy;
 
-    // Một Category có nhiều Document
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Document> documents;
 
+    @OneToMany(mappedBy = "category", fetch = FetchType.LAZY)
+    private Set<Book> books;
 
 }

@@ -11,6 +11,7 @@ public class Role {
     @Column(name = "name", nullable = false, length = 255, unique = true)
     private String name;
 
-    @ManyToMany(mappedBy = "roles", fetch = FetchType.LAZY)
-    private Set<Account> accounts;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "account_id", referencedColumnName = "id")
+    private Account account;
 }

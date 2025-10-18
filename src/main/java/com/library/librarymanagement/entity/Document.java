@@ -1,10 +1,13 @@
 package com.library.librarymanagement.entity;
 
 import jakarta.persistence.*;
+import lombok.Data;
+
 import java.util.Date;
 
 @Entity
 @Table(name = "document")
+@Data
 public class Document {
 
     @Id

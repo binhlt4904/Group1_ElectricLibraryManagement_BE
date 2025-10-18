@@ -1,11 +1,14 @@
 package com.library.librarymanagement.entity;
 
 import jakarta.persistence.*;
+import lombok.Data;
+
 import java.sql.Timestamp;
 import java.util.Set;
 
 @Entity
 @Table(name = "reader")
+@Data
 public class Reader {
 
     @Id
@@ -21,15 +24,16 @@ public class Reader {
     @Column(name = "created_by")   private Long createdBy;
     @Column(name = "updated_by")   private Long updatedBy;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "account_id", referencedColumnName = "id")
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "account_id", referencedColumnName = "id", unique = true)
     private Account account;
 
-    // ✅ 1 reader -> N report (khớp mappedBy = "createdBy" ở Report)
+    @OneToMany(mappedBy = "reviewer", fetch = FetchType.LAZY)
+    private Set<Review> reviews;
+
     @OneToMany(mappedBy = "createdBy", fetch = FetchType.LAZY)
     private java.util.Set<Report> reports;
 
-    // 1–1 với LibraryCard (FK ở library_card.reader_id UNIQUE)
     @OneToOne(mappedBy = "reader", fetch = FetchType.LAZY, optional = false)
     private LibraryCard libraryCard;
 }
