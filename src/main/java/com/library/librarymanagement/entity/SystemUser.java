@@ -5,6 +5,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.util.Set;
 
 @Entity
 @Table(name = "system_user")
@@ -28,4 +29,14 @@ public class SystemUser {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "account_id", referencedColumnName = "id", unique = true)
     private Account account;
+
+    @OneToMany(mappedBy = "fromUser", fetch = FetchType.LAZY)
+    private Set<Event> events;
+
+
+    @OneToMany(mappedBy = "createdBy", fetch = FetchType.LAZY)
+    private Set<Report> createdReports;
+
+    @OneToMany(mappedBy = "confirmedBy", fetch = FetchType.LAZY)
+    private Set<Report> confirmedReports;
 }

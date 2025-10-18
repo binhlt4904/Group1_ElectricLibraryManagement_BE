@@ -24,9 +24,10 @@ public class Event {
     @Column(name = "created_date")
     private java.util.Date createdDate;
 
-    // Nhiều event thuộc 1 account; cột FK là from_user
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "from_user", referencedColumnName = "id", nullable = false)
-    private Account account;
+    private SystemUser fromUser;
+
+
 
 }

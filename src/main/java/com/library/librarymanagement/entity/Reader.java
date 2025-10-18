@@ -31,8 +31,7 @@ public class Reader {
     @OneToMany(mappedBy = "reviewer", fetch = FetchType.LAZY)
     private Set<Review> reviews;
 
-    @OneToMany(mappedBy = "createdBy", fetch = FetchType.LAZY)
-    private java.util.Set<Report> reports;
+
 
     @OneToOne(mappedBy = "reader", fetch = FetchType.LAZY, optional = false)
     private LibraryCard libraryCard;

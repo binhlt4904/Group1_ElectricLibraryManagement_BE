@@ -17,10 +17,6 @@ public class Report {
     @Column(name = "title", length = 255)
     private String title;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "created_by", referencedColumnName = "id", nullable = false)
-    private Reader createdBy;
-
     @Column(name = "created_date")
     private java.sql.Timestamp createdDate;
 
@@ -31,7 +27,11 @@ public class Report {
     private String status;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by", referencedColumnName = "id")
+    private SystemUser createdBy;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "confirmed_by", referencedColumnName = "id")
-    private Account confirmedBy;
+    private SystemUser confirmedBy;
 
 }

@@ -26,6 +26,5 @@ public class ReturnRecord {
     @OneToOne(mappedBy = "returnRecord")
     private BorrowRecord borrowRecord;
 
-    @OneToOne(mappedBy = "returnRecord", cascade = CascadeType.ALL)
-    private FinePayment finePayment;
+
 }

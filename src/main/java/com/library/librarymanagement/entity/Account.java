@@ -26,8 +26,7 @@ public class Account {
     @Column(name = "email", length = 255, unique = true)
     private String email;
 
-    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private Set<Event> events;
+
 
     @Column(name = "phone", length = 20)
     private String phone;
@@ -38,8 +37,9 @@ public class Account {
     @OneToOne(mappedBy = "account", fetch = FetchType.LAZY)
     private SystemUser systemUser;
 
-    @OneToMany(mappedBy = "account", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = false)
-    private Set<Role> roles;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "role_id", referencedColumnName = "id", nullable = false)
+    private Role role;
 
 
 }
