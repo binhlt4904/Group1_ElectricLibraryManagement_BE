@@ -1,10 +1,19 @@
 package com.library.librarymanagement.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.util.Set;
 
 @Entity
 @Table(name = "account")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Account {
 
     @Id
@@ -25,8 +34,6 @@ public class Account {
 
     @Column(name = "email", length = 255, unique = true)
     private String email;
-
-
 
     @Column(name = "phone", length = 20)
     private String phone;
