@@ -22,7 +22,6 @@ public class AccountController {
 
     @PostMapping("/")
     public ResponseEntity<ApiResponse> createAccount(@Valid @RequestBody AccountRequest accountRequest) {
-        log.info("da vao ham tao user");
         return ResponseEntity.ok(accountService.createAccount(accountRequest));
     }
 

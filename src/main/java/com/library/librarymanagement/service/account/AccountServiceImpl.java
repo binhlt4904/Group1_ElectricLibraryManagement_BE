@@ -42,6 +42,7 @@ public class AccountServiceImpl implements AccountService {
         String encodedPassword = passwordEncoder.encode(accountRequest.getPassword());
         account.setPassword(encodedPassword);
         account.setRole(result.get());
+        account.setStatus("Active");
 
         if (accountRepository.findByUsername(accountRequest.getUsername()).isPresent()) {
             throw new ExistAttributeValueException("Username already exists");

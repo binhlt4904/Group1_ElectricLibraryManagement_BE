@@ -23,8 +23,12 @@ public class AccountRequest {
     @Size(min = 8, message = "Password must be at least 8 characters")
     private String password;
 
-    @NotBlank(message = "Fullname cannot be blank")
-    @Size(min = 8, message = "Fullname must be at least 8 characters")
+    @NotBlank(message = "Full name cannot be blank")
+    @Size(min = 2, max = 100, message = "Full name must be between 2 and 100 characters")
+    @Pattern(
+            regexp = "^[\\p{L} .'-]+$",
+            message = "Full name contains invalid characters"
+    )
     private String fullName;
 
     @NotBlank(message = "Email cannot be blank")
