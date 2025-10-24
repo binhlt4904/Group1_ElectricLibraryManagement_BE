@@ -27,6 +27,13 @@ public class Book {
     @Column(name = "imported_date")
     private Date importedDate;
 
+    @Temporal(TemporalType.DATE)
+    @Column(name = "published_date")
+    private Date publishedDate;
+
+    @Column(name = "image", length = 255)
+    private String image;
+
     @Column(name = "is_deleted")
     private Boolean isDeleted;
 
