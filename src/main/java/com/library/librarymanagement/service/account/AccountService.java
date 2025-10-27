@@ -15,4 +15,5 @@ public interface AccountService {
     Page<AccountDto> findAll(String fullName, String status, Long roleId, int page, int size);
     CreateStaffResponse createStaff(CreateStaffRequest req);
     AccountDto updateAccount(Long accountId, UpdateAccountRequest req);
+    void deleteAccount(Long accountId);
 }

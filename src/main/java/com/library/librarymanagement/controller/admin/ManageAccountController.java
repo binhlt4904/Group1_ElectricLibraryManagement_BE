@@ -45,4 +45,9 @@ public class ManageAccountController {
         AccountDto res = accountService.updateAccount(id, req);
         return ResponseEntity.ok(res);
     }
+    @DeleteMapping("accounts/delete/{id}")
+    public ResponseEntity<Void> deleteAccount(@PathVariable("id") Long id) {
+        accountService.deleteAccount(id);
+        return ResponseEntity.noContent().build(); // 204
+    }
 }
