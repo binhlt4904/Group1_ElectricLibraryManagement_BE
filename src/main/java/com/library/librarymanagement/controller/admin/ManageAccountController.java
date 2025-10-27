@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -20,6 +21,7 @@ public class ManageAccountController {
     private final AccountService accountService;
     // lấy tất cả danh sách account lọc theo status, fullname, role
     @GetMapping("accounts")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<AccountDto>> list(
             @RequestParam(name = "full_name", required = false) String fullName,
             @RequestParam(required = false) String status,
@@ -31,6 +33,7 @@ public class ManageAccountController {
         return ResponseEntity.ok(result);
     }
     @PostMapping("accounts/create")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CreateStaffResponse> createStaff(
             @Valid @RequestBody CreateStaffRequest req
     ) {
@@ -38,6 +41,7 @@ public class ManageAccountController {
         return ResponseEntity.status(HttpStatus.CREATED).body(res);
     }
     @PutMapping("accounts/update/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AccountDto> updateAccount(
             @PathVariable("id") Long id,
             @Valid @RequestBody UpdateAccountRequest req
@@ -46,6 +50,7 @@ public class ManageAccountController {
         return ResponseEntity.ok(res);
     }
     @DeleteMapping("accounts/delete/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteAccount(@PathVariable("id") Long id) {
         accountService.deleteAccount(id);
         return ResponseEntity.noContent().build(); // 204
