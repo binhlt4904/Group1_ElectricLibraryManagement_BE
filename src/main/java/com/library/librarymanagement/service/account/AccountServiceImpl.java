@@ -12,6 +12,7 @@ import com.library.librarymanagement.entity.SystemUser;
 import com.library.librarymanagement.exception.ConstraintViolationException;
 import com.library.librarymanagement.exception.ExistAttributeValueException;
 import com.library.librarymanagement.exception.ObjectNotExistException;
+import com.library.librarymanagement.repository.ReaderRepository;
 import com.library.librarymanagement.repository.SystemUserRepository;
 import com.library.librarymanagement.repository.account.AccountRepository;
 import com.library.librarymanagement.repository.role.RoleRepository;
@@ -41,9 +42,11 @@ public class AccountServiceImpl implements AccountService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final SystemUserRepository systemUserRepository;
+    private final ReaderRepository readerRepository;
+
     @Value("${default.role}")
     private String defaultRole;
-    private static final long ROLE_STAFF  = 2;
+    private static final long ROLE_STAFF = 2;
     private static final long ROLE_READER = 3;
 
     @Override
@@ -51,7 +54,7 @@ public class AccountServiceImpl implements AccountService {
     public ApiResponse createAccount(AccountRequest accountRequest) {
 
         Optional<Role> result = roleRepository.findByName(defaultRole);
-        if(!result.isPresent()) {
+        if (!result.isPresent()) {
             throw new ObjectNotExistException("Role Not Found");
         }
         Account account = Mapper.mapDTOToEntity(accountRequest);
@@ -63,7 +66,7 @@ public class AccountServiceImpl implements AccountService {
         if (accountRepository.findByUsername(accountRequest.getUsername()).isPresent()) {
             throw new ExistAttributeValueException("Username already exists");
         }
-        if(accountRepository.findByPhone(accountRequest.getPhone()).isPresent()) {
+        if (accountRepository.findByPhone(accountRequest.getPhone()).isPresent()) {
             throw new ExistAttributeValueException("Phone number already exists");
         }
 
@@ -75,7 +78,7 @@ public class AccountServiceImpl implements AccountService {
                     .success(success)
                     .message("Account created successfully")
                     .build();
-        } catch (Exception e){
+        } catch (Exception e) {
             throw new ConstraintViolationException("Violate constraint in database");
         }
     }
@@ -84,7 +87,7 @@ public class AccountServiceImpl implements AccountService {
     public Page<AccountDto> findAll(String fullName, String status, Long roleId, int page, int size) {
         // chuẩn hoá input
         String fn = (fullName == null || fullName.isBlank()) ? null : fullName.trim();
-        String st = (status   == null || status.isBlank())   ? null : status.trim();
+        String st = (status == null || status.isBlank()) ? null : status.trim();
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
 
         Page<Account> listAccounts = accountRepository.getAllAccounts(fn, st, roleId, pageable);
@@ -225,5 +228,40 @@ public class AccountServiceImpl implements AccountService {
                 .role(acc.getRole() != null ? acc.getRole().getName() : null)
                 .build();
     }
-}
 
+    @Override
+    @Transactional
+    public void deleteAccount(Long accountId) {
+        Account acc = accountRepository.findById(accountId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found"));
+        Role role = acc.getRole();
+        if (role == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Role not found");
+        }
+        long roleId = role.getId();
+        if (roleId != ROLE_STAFF && roleId != ROLE_READER) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only STAFF/READER can be deleted");
+        }
+        //thuc hien doi status o account thanh deleted(softdelete)
+        acc.setStatus("DELETED");
+        accountRepository.save(acc);
+        //thuc hien xoa o 2 bang reader va systemUser
+        Timestamp now = Timestamp.valueOf(LocalDateTime.now());
+
+        if (roleId == ROLE_STAFF) {
+            systemUserRepository.findByAccountId(acc.getId()).ifPresent(staff -> {
+                staff.setIsDeleted(true);
+                staff.setUpdatedDate(now);
+                staff.setUpdatedBy(Long.valueOf("1"));
+                systemUserRepository.save(staff);
+            });
+        } else{
+            readerRepository.findByAccountId(acc.getId()).ifPresent(reader -> {
+                reader.setIsDeleted(true);
+                reader.setUpdatedDate(now);
+                reader.setUpdatedBy(Long.valueOf("1"));
+                readerRepository.save(reader);
+            });
+        }
+    }
+}

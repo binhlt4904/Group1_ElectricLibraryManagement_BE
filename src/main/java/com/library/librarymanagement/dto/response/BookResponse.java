@@ -1,5 +1,6 @@
 package com.library.librarymanagement.dto.response;
 
+import com.library.librarymanagement.entity.Publisher;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,4 +17,6 @@ public class BookResponse {
     private String isDeleted;
     private String category;
     private Date publishedDate;
+    private Date importedDate;
+    private String publisher;
 }

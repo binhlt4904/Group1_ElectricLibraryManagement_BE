@@ -1,4 +1,4 @@
-package com.library.librarymanagement.controller.user;
+package com.library.librarymanagement.controller.admin;
 
 import com.library.librarymanagement.dto.request.BookRequest;
 import com.library.librarymanagement.dto.response.BookResponse;
@@ -14,21 +14,23 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/public/books")
-public class BookController {
+@RequestMapping("/api/v1/public/admin/books")
+public class AdminBookController {
     private final BookService bookService;
 
     @GetMapping(path="/")
     public ResponseEntity<?> getAllBooks() {
-        List<BookResponse> books = bookService.getAllBooks();
+        List<BookResponse> books = bookService.getAllAdminBooks();
         System.out.println("Fetched Books: " + books);
 
         return ResponseEntity.ok(books);
     }
 
-    @GetMapping(path="/{id}")
-    public ResponseEntity<?> getBookById(@PathVariable Long id) {
-        return ResponseEntity.ok("Get Book by ID");
+    @PostMapping(path="/", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> createBook(@ModelAttribute BookRequest book) throws IOException {
+        System.out.println("Creating Book: " + book);
+        Book createdBook = bookService.createBook(book);
+        return ResponseEntity.ok().body(createdBook);
     }
 
 }

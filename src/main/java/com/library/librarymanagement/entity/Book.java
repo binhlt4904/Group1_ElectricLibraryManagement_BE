@@ -1,7 +1,9 @@
 package com.library.librarymanagement.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.Date;
@@ -13,6 +15,8 @@ import java.util.Set;
         name = "book",
         uniqueConstraints = @UniqueConstraint(name = "UQ_book_code", columnNames = "book_code")
 )
+@NoArgsConstructor
+@AllArgsConstructor
 public class Book {
 
     @Id
