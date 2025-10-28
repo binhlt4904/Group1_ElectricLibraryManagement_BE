@@ -29,6 +29,7 @@ public class Book {
     @Column(name = "title", length = 255)
     private String title;
 
+    @Lob
     @Column(name = "description")
     private String description;
 

@@ -9,8 +9,11 @@ import java.util.Date;
 
 @Getter
 @Setter
+
 public class BookResponse {
     private int id;
+    private String bookCode;
+    private String description;
     private String author;
     private String title;
     private String image;

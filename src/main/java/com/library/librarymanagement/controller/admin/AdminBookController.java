@@ -1,10 +1,16 @@
 package com.library.librarymanagement.controller.admin;
 
 import com.library.librarymanagement.dto.request.BookRequest;
+import com.library.librarymanagement.dto.response.BookContentResponse;
 import com.library.librarymanagement.dto.response.BookResponse;
 import com.library.librarymanagement.entity.Book;
+import com.library.librarymanagement.entity.BookContent;
 import com.library.librarymanagement.service.book.BookService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,9 +25,15 @@ public class AdminBookController {
     private final BookService bookService;
 
     @GetMapping(path="/")
-    public ResponseEntity<?> getAllBooks() {
-        List<BookResponse> books = bookService.getAllAdminBooks();
-        System.out.println("Fetched Books: " + books);
+    public ResponseEntity<?> getAllBooks(@RequestParam(defaultValue = "0") int page,
+                                         @RequestParam(defaultValue = "4") int size,
+                                         @RequestParam(required = false) String search,
+                                         @RequestParam(required = false) String category,
+                                         @RequestParam(required = false) String status) {
+        System.out.println("Page: " + page + ", Size: " + size);
+        System.out.println("Fetching books with search: " + search + ", category: " + category + ", status: " + status);
+        Pageable pageable = PageRequest.of(page, size, Sort.by("importedDate").descending());
+        Page<BookResponse> books = bookService.getBooks(pageable, search, category, status);
 
         return ResponseEntity.ok(books);
     }
@@ -31,6 +43,16 @@ public class AdminBookController {
         System.out.println("Creating Book: " + book);
         Book createdBook = bookService.createBook(book);
         return ResponseEntity.ok().body(createdBook);
+    }
+
+    @GetMapping(path="/{id}")
+    public ResponseEntity<?> getBookById(@PathVariable Long id) {
+        return ResponseEntity.ok(bookService.getBookById(id));
+    }
+
+    @GetMapping("/{id}/contents")
+    public ResponseEntity<List<BookContentResponse>> getBookContents(@PathVariable Long id) {
+        return ResponseEntity.ok(bookService.getBookContent(id));
     }
 
 }
