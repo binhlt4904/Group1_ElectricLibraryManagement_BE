@@ -1,6 +1,7 @@
 package com.library.librarymanagement.exception;
 
 import com.library.librarymanagement.dto.response.ApiResponse;
+import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -33,5 +34,10 @@ public class GlobalExceptionHandling {
                         .success(false)
                         .message(e.getMessage())
                         .build());
+    }
+
+    @ExceptionHandler(ExpiredJwtException.class)
+    public ResponseEntity<?> handleExpiredJwtException(ExpiredJwtException e) {
+        return ResponseEntity.badRequest().build();
     }
 }

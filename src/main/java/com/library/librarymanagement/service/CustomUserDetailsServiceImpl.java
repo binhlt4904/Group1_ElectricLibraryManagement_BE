@@ -2,23 +2,24 @@ package com.library.librarymanagement.service;
 
 import com.library.librarymanagement.entity.Account;
 import com.library.librarymanagement.repository.account.AccountRepository;
+import com.library.librarymanagement.service.custom_user_details.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class UserDetailsServiceImpl implements UserDetailsManager {
-    private final AccountRepository accountRepository;
+public class CustomUserDetailsServiceImpl implements UserDetailsManager {
 
+    private final AccountRepository accountRepository;
     @Override
     public void createUser(UserDetails user) {
 
@@ -45,17 +46,12 @@ public class UserDetailsServiceImpl implements UserDetailsManager {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Optional<Account> result = accountRepository.findByUsername(username);
         Account account = result.orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
 
         SimpleGrantedAuthority grantedAuthority = new SimpleGrantedAuthority(account.getRole().getName());
-
-        UserDetails userResponse = User.builder()
-                .username(account.getUsername())
-                .password(account.getPassword())
-                .authorities(grantedAuthority)
-                .build();
-        return userResponse;
+        return new CustomUserDetails(account.getId(),account.getUsername(), account.getPassword(), List.of(grantedAuthority));
     }
 }

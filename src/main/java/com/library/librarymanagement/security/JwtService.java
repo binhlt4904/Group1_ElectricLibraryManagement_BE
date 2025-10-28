@@ -1,5 +1,7 @@
 package com.library.librarymanagement.security;
 
+import com.library.librarymanagement.service.custom_user_details.CustomUserDetails;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,13 +19,17 @@ public class JwtService {
     @Value("${secret.key}")
     private String secretKey;
 
-    public String generateToken(UserDetails userDetails) {
+    public String generateAccessToken(UserDetails userDetails) {
         String role = userDetails.getAuthorities().toString();
-
+        Long accountId = -1L;
+        if (userDetails instanceof CustomUserDetails customUserDetails) {
+            accountId = customUserDetails.getAccountId();
+        }
         return Jwts.builder()
                 .setId(UUID.randomUUID().toString())
                 .setSubject(userDetails.getUsername())
                 .claim("role", role)
+                .claim("accountId", accountId)
                 .setIssuer("nms")
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 15)) //15 minites
@@ -31,8 +37,26 @@ public class JwtService {
                 .compact();
     }
 
+    public String generateRefreshToken(UserDetails userDetails) {
+        return Jwts.builder()
+                .setSubject(userDetails.getUsername())
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24 * 7)) // 7 days
+                .signWith(Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8)), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
     public String extractUsername(String token) {
-        return Jwts.parser().setSigningKey(secretKey.getBytes(StandardCharsets.UTF_8)).parseClaimsJws(token).getBody().getSubject();
+        try {
+            return Jwts.parserBuilder()
+                    .setSigningKey(secretKey.getBytes(StandardCharsets.UTF_8))
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody()
+                    .getSubject();
+        } catch (ExpiredJwtException ex){
+            return ex.getClaims().getSubject();
+        }
     }
 
     public boolean isValidToken(String token, UserDetails userDetails) {
