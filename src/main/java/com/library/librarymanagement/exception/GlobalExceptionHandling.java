@@ -2,6 +2,7 @@ package com.library.librarymanagement.exception;
 
 import com.library.librarymanagement.dto.response.ApiResponse;
 import org.springframework.http.HttpStatus;
+import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -90,4 +91,9 @@ public class GlobalExceptionHandling {
         return new ResponseEntity<>(body, ex.getStatusCode());
     }
 
+
+    @ExceptionHandler(ExpiredJwtException.class)
+    public ResponseEntity<?> handleExpiredJwtException(ExpiredJwtException e) {
+        return ResponseEntity.badRequest().build();
+    }
 }
