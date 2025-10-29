@@ -9,7 +9,7 @@ import com.library.librarymanagement.entity.Category;
 import com.library.librarymanagement.entity.Document;
 import com.library.librarymanagement.exception.ObjectNotExistException;
 import com.library.librarymanagement.repository.admin.DocumentRepository;
-import com.library.librarymanagement.repository.admin.CategoryRepository;
+import com.library.librarymanagement.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

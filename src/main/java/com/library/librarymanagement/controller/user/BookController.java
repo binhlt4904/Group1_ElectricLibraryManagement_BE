@@ -46,5 +46,10 @@ public class BookController {
         return ResponseEntity.ok(reviewService.getBookReviews(id));
     }
 
+    @GetMapping("/{id}/contents/user")
+    public ResponseEntity<List<BookContentResponse>> getBookContentsUser(@PathVariable Long id) {
+        return ResponseEntity.ok(bookService.getBookContent(id));
+    }
+
 
 }
