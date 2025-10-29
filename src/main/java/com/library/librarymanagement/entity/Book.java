@@ -1,22 +1,22 @@
 package com.library.librarymanagement.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.Date;
 import java.util.Set;
 @Getter
 @Setter
+
 @Entity
 @Table(
         name = "book",
         uniqueConstraints = @UniqueConstraint(name = "UQ_book_code", columnNames = "book_code")
 )
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Book {
 
     @Id
