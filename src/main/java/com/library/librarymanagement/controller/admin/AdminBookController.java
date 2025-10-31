@@ -41,8 +41,8 @@ public class AdminBookController {
     @PostMapping(path="/", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> createBook(@ModelAttribute BookRequest book) throws IOException {
         System.out.println("Creating Book: " + book);
-        Book createdBook = bookService.createBook(book);
-        return ResponseEntity.ok().body(createdBook);
+        bookService.createBook(book);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping(path="/{id}")
