@@ -7,10 +7,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/v1/accounts")
@@ -20,11 +19,15 @@ public class AccountController {
 
     private final AccountService accountService;
 
-    @PostMapping("/")
-    public ResponseEntity<ApiResponse> createAccount(@Valid @RequestBody AccountRequest accountRequest) {
-        return ResponseEntity.ok(accountService.createAccount(accountRequest));
+    @PostMapping("/upload")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    public ResponseEntity<String> importReaders(@RequestParam("file") MultipartFile file) {
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().body("File empty!");
+        }
+
+        accountService.importReaders(file);
+        return ResponseEntity.ok("Import thành công!");
     }
-
-
 
 }
