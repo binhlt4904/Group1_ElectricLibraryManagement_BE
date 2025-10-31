@@ -29,7 +29,8 @@ public class Book {
     @Column(name = "title", length = 255)
     private String title;
 
-    @Lob
+    // @Lob
+    // Now comment annotation @Lob in this entity to avoid error
     @Column(name = "description")
     private String description;
 

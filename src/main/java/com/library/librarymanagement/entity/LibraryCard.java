@@ -2,6 +2,8 @@ package com.library.librarymanagement.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.sql.Timestamp;
 import java.util.Date;
@@ -38,9 +40,11 @@ public class LibraryCard {
     private Long updatedBy;
 
     @Column(name = "created_date")
+    @CreationTimestamp
     private Timestamp createdDate;
 
     @Column(name = "updated_date")
+    @UpdateTimestamp
     private Timestamp updatedDate;
 
     @Column(name = "is_deleted")
