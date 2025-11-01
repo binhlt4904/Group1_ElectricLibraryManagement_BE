@@ -11,7 +11,9 @@ import java.util.List;
 
 @Repository
 public interface BookRepository extends JpaRepository<Book,Long>, JpaSpecificationExecutor<Book> {
-    List<Book> findAllByIsDeletedFalse();
+    Page<Book> findAllByIsDeletedFalse(Pageable pageable);
+
+
 
     Book getBookById(Long id);
 }

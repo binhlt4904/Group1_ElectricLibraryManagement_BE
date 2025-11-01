@@ -1,22 +1,22 @@
 package com.library.librarymanagement.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.Date;
 import java.util.Set;
 @Getter
 @Setter
+
 @Entity
 @Table(
         name = "book",
         uniqueConstraints = @UniqueConstraint(name = "UQ_book_code", columnNames = "book_code")
 )
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Book {
 
     @Id
@@ -26,12 +26,12 @@ public class Book {
     @Column(name = "book_code", nullable = false, length = 100)
     private String bookCode;               // SKU / mã sản phẩm (unique ở constraint trên)
 
-    @Column(name = "title", length = 255)
+    @Column(name = "title", columnDefinition = "nvarchar(max)")
     private String title;
 
     // @Lob
     // Now comment annotation @Lob in this entity to avoid error
-    @Column(name = "description")
+    @Column(name = "description", columnDefinition = "nvarchar(max)")
     private String description;
 
     @Temporal(TemporalType.DATE)

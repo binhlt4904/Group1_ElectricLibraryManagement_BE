@@ -14,9 +14,11 @@ public class Publisher {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "companyName", columnDefinition = "nvarchar(MAX)")
     private String companyName;
     private String email;
     private String phone;
+    @Column(name = "address", columnDefinition = "nvarchar(MAX)")
     private String address;
     private Integer establishedYear;
     private String website;

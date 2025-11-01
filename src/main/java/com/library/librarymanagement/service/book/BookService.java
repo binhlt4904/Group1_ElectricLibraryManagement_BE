@@ -12,7 +12,9 @@ import com.library.librarymanagement.repository.user.BookContentRepository;
 import com.library.librarymanagement.repository.user.BookRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -32,7 +34,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class BookService {
 
-    private String uploadDir = "uploads/books";;
+    private String uploadDir = "uploads/books";
 
     private final BookRepository bookRepository;
     private final AuthorRepository authorRepository;
@@ -40,15 +42,45 @@ public class BookService {
     private final CategoryRepository categoryRepository;
     private final BookContentRepository bookContentRepository;
 
-    public List<BookResponse> getAllBooks() {
-        List<BookResponse> bookResponses = new ArrayList<>();
-        List<Book> books = bookRepository.findAllByIsDeletedFalse();
-        for (Book book : books) {
-            System.out.println("Author: " + book.getAuthor().getFullName());
-            BookResponse bookResponse = convert(book);
-            bookResponses.add(bookResponse);
+    public Page<BookResponse> getAllBooks(Pageable pageable, String search, String category) {
+        Specification<Book> spec = Specification.allOf();
+        if(search != null && !search.isEmpty()) {
+            spec = spec.and((root,query,cb) ->
+                    cb.or(
+                            cb.like(cb.lower(root.get("author").get("fullName")), "%" + search.toLowerCase() + "%"),
+                            cb.like(cb.lower(root.get("title")),"%" + search.toLowerCase() + "%")
+                    ));
         }
-        return bookResponses;
+        if(category != null && !category.isEmpty()) {
+            spec = spec.and((root,query,cb) ->
+                    cb.equal(root.get("category").get("name"), category)
+            );
+        }
+
+            spec = spec.and((root,query,cb) ->
+                    cb.equal(root.get("isDeleted"), false)
+            );
+        return bookRepository.findAll(spec, pageable).map(this::convert);
+    }
+
+    public List<BookResponse> getRelatedBook(Long id) {
+        Book book = bookRepository.findById(id).orElseThrow(() -> new RuntimeException("Book not found"));
+        Specification<Book> spec = Specification.allOf();
+
+        spec = spec.and((root,query,cb) ->
+                cb.notEqual(root.get("id"), id));
+            spec = spec.and((root,query,cb) ->
+                    cb.equal(root.get("category").get("name"), book.getCategory().getName())
+            );
+
+        spec = spec.and((root,query,cb) ->
+                cb.equal(root.get("isDeleted"), false)
+        );
+        Pageable pageable = PageRequest.of(0, 5, Sort.by(Sort.Direction.DESC, "importedDate"));
+
+        List<BookResponse> responses= bookRepository.findAll(spec,pageable).stream().map(this::convert).toList();
+
+        return responses;
     }
 
     public BookResponse getBookById(Long id) {
