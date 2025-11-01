@@ -118,8 +118,11 @@ public class DocumentServiceImpl implements DocumentService {
             // Create document
             Document document = Document.builder()
                     .title(request.getTitle())
+                    .description(request.getDescription())
                     .category(category)
                     .filePath(request.getFilePath())
+                    .fileName(request.getFileName())
+                    .accessLevel(request.getAccessLevel())
                     .importedDate(new Date())
                     .createdBy(userId)
                     .isDeleted(false)
@@ -176,10 +179,22 @@ public class DocumentServiceImpl implements DocumentService {
                 document.setTitle(request.getTitle());
             }
 
+            if (request.getDescription() != null && !request.getDescription().isBlank()) {
+                document.setDescription(request.getDescription());
+            }
+
             if (request.getCategoryName() != null && !request.getCategoryName().isBlank()) {
                 Category category = categoryRepository.findByName(request.getCategoryName())
                         .orElseThrow(() -> new ObjectNotExistException("Category not found: " + request.getCategoryName()));
                 document.setCategory(category);
+            }
+
+            if (request.getFileName() != null && !request.getFileName().isBlank()) {
+                document.setFileName(request.getFileName());
+            }
+
+            if (request.getAccessLevel() != null && !request.getAccessLevel().isBlank()) {
+                document.setAccessLevel(request.getAccessLevel());
             }
 
             documentRepository.save(document);
@@ -238,12 +253,23 @@ public class DocumentServiceImpl implements DocumentService {
         }
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Page<DocumentDto> getPublicDocuments(String title, String categoryName, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Document> documents = documentRepository.findPublicDocuments(title, categoryName, pageable);
+        return documents.map(this::convertToDto);
+    }
+
     private DocumentDto convertToDto(Document document) {
         return DocumentDto.builder()
                 .id(document.getId())
                 .title(document.getTitle())
+                .description(document.getDescription())
                 .categoryName(document.getCategory() != null ? document.getCategory().getName() : null)
                 .filePath(document.getFilePath())
+                .fileName(document.getFileName())
+                .accessLevel(document.getAccessLevel())
                 .importedDate(document.getImportedDate())
                 .createdBy(document.getCreatedBy())
                 .isDeleted(document.getIsDeleted())

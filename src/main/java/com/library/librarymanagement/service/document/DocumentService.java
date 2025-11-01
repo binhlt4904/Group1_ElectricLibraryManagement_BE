@@ -39,5 +39,10 @@ public interface DocumentService {
      * Delete a document (soft delete)
      */
     ApiResponse deleteDocument(Long id);
+
+    /**
+     * Get public documents with pagination and optional filters
+     */
+    Page<DocumentDto> getPublicDocuments(String title, String categoryName, int page, int size);
 }
 

@@ -17,9 +17,15 @@ public class DocumentDto {
 
     private String title;
 
+    private String description;
+
     private String categoryName;
 
     private String filePath;
+
+    private String fileName;
+
+    private String accessLevel;
 
     private Date importedDate;
 
