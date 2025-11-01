@@ -26,11 +26,11 @@ public class Book {
     @Column(name = "book_code", nullable = false, length = 100)
     private String bookCode;               // SKU / mã sản phẩm (unique ở constraint trên)
 
-    @Column(name = "title", length = 255)
+    @Column(name = "title", columnDefinition = "nvarchar(max)")
     private String title;
 
-    @Lob
-    @Column(name = "description")
+
+    @Column(name = "description", columnDefinition = "nvarchar(max)")
     private String description;
 
     @Temporal(TemporalType.DATE)
