@@ -8,14 +8,17 @@ import com.library.librarymanagement.dto.response.ReviewResponse;
 import com.library.librarymanagement.entity.Book;
 import com.library.librarymanagement.entity.BookContent;
 import com.library.librarymanagement.service.book.BookService;
+import com.library.librarymanagement.service.custom_user_details.CustomUserDetails;
 import com.library.librarymanagement.service.review.ReviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -64,18 +67,38 @@ public class BookController {
     }
 
 
-
-
-    /** 🔹 Xóa review (USER chỉ được xóa của mình, STAFF/ADMIN xóa được tất cả) */
-    @DeleteMapping("/reviews/{reviewId}")
+    /** 🔹 Xoá review (USER chỉ được xoá của mình, STAFF/ADMIN xoá được tất cả) */
+    @DeleteMapping("/{bookId}/reviews/{reviewId}")
     public ResponseEntity<?> deleteReview(
+            @PathVariable Long bookId,
             @PathVariable Long reviewId,
             @RequestParam Long requesterId,
             @RequestParam String role
     ) {
         reviewService.deleteReview(reviewId, requesterId, role);
-        return ResponseEntity.ok("Review deleted successfully");
+        return ResponseEntity.ok(Map.of("message", "Review deleted successfully"));
     }
+
+    @PutMapping("/{bookId}/reviews/{reviewId}")
+    public ResponseEntity<ReviewResponse> updateReview(
+            @PathVariable Long bookId,
+            @PathVariable Long reviewId,
+            @RequestBody ReviewRequest request,
+            @RequestParam Long requesterId,
+            @RequestParam String role
+    ) {
+        ReviewResponse response = reviewService.updateReview(
+                reviewId,
+                requesterId,
+                request.getNote(),
+                request.getRate(),
+                role
+        );
+        return ResponseEntity.ok(response);
+    }
+
+
+
 
     /** 🔹 Lấy danh sách nội dung dạng “user” (ẩn chi tiết nội dung) */
     @GetMapping("/{id}/contents/user")

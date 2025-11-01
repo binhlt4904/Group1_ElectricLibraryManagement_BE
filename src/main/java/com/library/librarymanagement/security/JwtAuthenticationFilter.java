@@ -32,7 +32,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
 
         // 🔹 1️⃣ Bỏ qua tất cả route public
-        if (path.startsWith("/api/v1/public/") || path.startsWith("/uploads/")) {
+        if (path.startsWith("/api/v1/public/") || path.startsWith("/uploads/") || path.startsWith("/api/v1/reviews"))  {
             filterChain.doFilter(request, response);
             return;
         }
