@@ -14,6 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CustomUserDetails implements UserDetails {
+    private Long readerId;
     private Long accountId;
     private String username;
     private String password;
