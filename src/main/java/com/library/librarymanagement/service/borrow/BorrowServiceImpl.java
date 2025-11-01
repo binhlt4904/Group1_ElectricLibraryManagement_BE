@@ -1,5 +1,6 @@
 package com.library.librarymanagement.service.borrow;
 
+import com.library.librarymanagement.dto.response.BorrowRecordResponse;
 import com.library.librarymanagement.entity.Book;
 import com.library.librarymanagement.entity.BorrowRecord;
 import com.library.librarymanagement.entity.LibraryCard;
@@ -11,7 +12,12 @@ import com.library.librarymanagement.repository.borrow.LibraryCardRepository;
 import com.library.librarymanagement.repository.user.BookRepository;
 import com.library.librarymanagement.security.JwtService;
 import com.library.librarymanagement.service.custom_user_details.CustomUserDetails;
+import com.library.librarymanagement.util.Mapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -69,5 +75,41 @@ public class BorrowServiceImpl implements BorrowService {
         } catch (Exception e){
             throw new RuntimeException("Fail to save database" + bookId);
         }
+    }
+
+    @Override
+    public Page<BorrowRecordResponse> searchBorrowRecords(String search, String status, Date fromDate, Date toDate, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Specification<BorrowRecord> specification = Specification.allOf();
+
+        if (search != null && !search.isBlank()) {
+            specification = specification
+                    .and((root, query, cb) -> cb.or(
+                            cb.like(cb.lower(root.join("book").get("title")), "%" + search.toLowerCase() + "%"),
+                            cb.like(cb.lower(root.join("libraryCard").join("reader").join("account").get("fullName")),"%" + search.toLowerCase() + "%")
+                    ));
+        }
+
+        if (status != null && !status.isBlank()) {
+            specification = specification.and((root, query, cb) ->
+                    cb.equal(root.get("status"), status)
+            );
+        }
+
+        if (fromDate != null){
+            specification = specification.and((root, query, cb) ->
+                      cb.greaterThanOrEqualTo(root.get("borrowedDate"), fromDate)
+            );
+        }
+
+        if (toDate != null){
+            specification = specification.and((root, query, cb) ->
+                        cb.lessThanOrEqualTo(root.get("borrowedDate"), toDate)
+            );
+        }
+        Page<BorrowRecord> result = borrowRepository.findAll(specification, pageable);
+        return result.map((record) -> {
+            return Mapper.mapEntityToDTO(record);
+        });
     }
 }

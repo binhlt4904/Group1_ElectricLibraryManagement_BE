@@ -2,6 +2,7 @@ package com.library.librarymanagement.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.sql.Timestamp;
 import java.util.Date;
@@ -20,8 +21,9 @@ public class ReturnRecord {
     private String note;
     private String status;
 
+    @CreationTimestamp
     private Timestamp createdDate;
-    private Long createdBy;
+    private Long createdBy; //accountId
 
     @OneToOne(mappedBy = "returnRecord")
     private BorrowRecord borrowRecord;

@@ -477,6 +477,7 @@ public class AccountServiceImpl implements AccountService {
                 Role userRole = roleRepository.findByName("ROLE_READER")
                         .orElseThrow(() -> new ObjectNotExistException("Role not found"));
                 account.setRole(userRole);
+                account.setStatus("Active");
                 account.setPassword(passwordEncoder.encode(account.getPassword()));
                 // ✅ Check tồn tại username / email
                 if (accountRepository.existsByUsernameIgnoreCase(account.getUsername())) {
