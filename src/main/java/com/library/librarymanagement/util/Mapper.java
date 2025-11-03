@@ -5,6 +5,8 @@ import com.library.librarymanagement.dto.response.BorrowRecordResponse;
 import com.library.librarymanagement.entity.Account;
 import com.library.librarymanagement.entity.BorrowRecord;
 
+import java.math.BigDecimal;
+
 public class Mapper {
     public static Account mapDTOToEntity(AccountRequest accountRequest) {
         return Account.builder()
@@ -20,9 +22,19 @@ public class Mapper {
         return BorrowRecordResponse.builder()
                 .id(borrowRecord.getId())
                 .bookTitle(borrowRecord.getBook().getTitle())
+                .authorName(borrowRecord.getBook().getAuthor().getFullName())
                 .borrowedDate(borrowRecord.getBorrowedDate())
+                .allowedDate(borrowRecord.getAllowedDate())
                 .readerName(borrowRecord.getLibraryCard().getReader().getAccount().getFullName())
                 .status(borrowRecord.getStatus())
+                .fine(
+                        borrowRecord.getReturnRecord() != null
+                                ? borrowRecord.getReturnRecord().getFineAmount()
+                                : BigDecimal.ZERO
+                )
+                .returnedDate(borrowRecord.getReturnRecord() != null
+                                    ? borrowRecord.getReturnRecord().getReturnedDate() : null
+                )
                 .build();
     }
 

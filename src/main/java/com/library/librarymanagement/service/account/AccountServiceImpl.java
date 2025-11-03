@@ -477,21 +477,33 @@ public class AccountServiceImpl implements AccountService {
                 Role userRole = roleRepository.findByName("ROLE_READER")
                         .orElseThrow(() -> new ObjectNotExistException("Role not found"));
                 account.setRole(userRole);
-                account.setStatus("Active");
+                account.setStatus("ACTIVE");
+                String rawPassword = account.getPassword();
                 account.setPassword(passwordEncoder.encode(account.getPassword()));
+
+                boolean skip = false;
                 // ✅ Check tồn tại username / email
                 if (accountRepository.existsByUsernameIgnoreCase(account.getUsername())) {
-                    throw new ObjectExistedException(account.getUsername());
+//                    throw new ObjectExistedException(account.getUsername());
+                    skip = true;
                 }
                 if (accountRepository.existsByEmailIgnoreCase(account.getEmail())) {
-                    throw new ObjectExistedException(account.getEmail());
+//                    throw new ObjectExistedException(account.getEmail());
+                    skip = true;
                 }
+
+                if (readerRepository.existsByReaderCode(reader.getReaderCode())) {
+                    System.out.println("⚠️ Bỏ qua reader (trùng reader_code): " + reader.getReaderCode());
+                    skip = true;
+                }
+
+                if (skip) continue;
 
                 try {
                     accountRepository.save(account);
                     reader.setAccount(account);
                     readerRepository.save(reader);
-                    emailService.sendAccountInfor(account.getEmail(), account.getUsername(), account.getPassword());
+                    emailService.sendAccountInfor(account.getEmail(), account.getUsername(), rawPassword);
                     System.out.println("✅ Import thành công: " + account.getUsername());
                 } catch (Exception e) {
                     throw new RuntimeException("Import failed: " + e.getMessage(), e);

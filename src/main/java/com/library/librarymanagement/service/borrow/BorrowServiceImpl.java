@@ -24,6 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -86,6 +88,7 @@ public class BorrowServiceImpl implements BorrowService {
             specification = specification
                     .and((root, query, cb) -> cb.or(
                             cb.like(cb.lower(root.join("book").get("title")), "%" + search.toLowerCase() + "%"),
+                            cb.like(cb.lower(root.join("book").join("author").get("fullName")), "%" + search.toLowerCase() + "%"),
                             cb.like(cb.lower(root.join("libraryCard").join("reader").join("account").get("fullName")),"%" + search.toLowerCase() + "%")
                     ));
         }
@@ -111,5 +114,120 @@ public class BorrowServiceImpl implements BorrowService {
         return result.map((record) -> {
             return Mapper.mapEntityToDTO(record);
         });
+    }
+
+    @Override
+    public List<BorrowRecordResponse> searchBorrowRecordsStatistic(Date fromDate, Date toDate) {
+        Specification<BorrowRecord> specification = Specification.allOf();
+        if (fromDate != null){
+            specification = specification.and((root, query, cb) ->
+                    cb.greaterThanOrEqualTo(root.get("borrowedDate"), fromDate)
+            );
+        }
+
+        if (toDate != null){
+            specification = specification.and((root, query, cb) ->
+                    cb.lessThanOrEqualTo(root.get("borrowedDate"), toDate)
+            );
+        }
+        List<BorrowRecord> result = borrowRepository.findAll(specification);
+        return result.stream().map((record) -> {
+            return Mapper.mapEntityToDTO(record);
+        }).collect(Collectors.toList());
+    }
+
+    @Override
+    public Page<BorrowRecordResponse> searchBorrowRecordsBySpecReader(String search, String status, Date fromDate, Date toDate, int page, int size) {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        Long accountId;
+        if (principal instanceof CustomUserDetails userDetails) {
+            accountId = userDetails.getAccountId();
+        } else {
+            throw new RuntimeException("Cannot extract accountId: invalid principal");
+        }
+
+        Reader reader = readerRepository.findByAccountId(accountId)
+                .orElseThrow(() -> new ObjectNotExistException("Reader is not found" + accountId));
+        Long readerId = reader.getId();
+
+        LibraryCard card = libraryCardRepository.findByReader_Id(readerId)
+                .orElseThrow(() -> new ObjectNotExistException("LibraryCard is not found" + readerId));
+
+        Pageable pageable = PageRequest.of(page, size);
+        Specification<BorrowRecord> specification = Specification.allOf();
+
+        specification = specification.and((root, query, cb) ->
+                cb.equal(root.get("libraryCard").get("id"), card.getId()));
+
+        if (search != null && !search.isBlank()) {
+            specification = specification
+                    .and((root, query, cb) -> cb.or(
+                            cb.like(cb.lower(root.join("book").get("title")), "%" + search.toLowerCase() + "%"),
+                            cb.like(cb.lower(root.join("book").join("author").get("fullName")), "%" + search.toLowerCase() + "%")
+                    ));
+        }
+
+        if (status != null && !status.isBlank()) {
+            specification = specification.and((root, query, cb) ->
+                    cb.equal(root.get("status"), status)
+            );
+        }
+
+        if (fromDate != null){
+            specification = specification.and((root, query, cb) ->
+                    cb.greaterThanOrEqualTo(root.get("borrowedDate"), fromDate)
+            );
+        }
+
+        if (toDate != null){
+            specification = specification.and((root, query, cb) ->
+                    cb.lessThanOrEqualTo(root.get("borrowedDate"), toDate)
+            );
+        }
+        Page<BorrowRecord> result = borrowRepository.findAll(specification, pageable);
+        return result.map((record) -> {
+            return Mapper.mapEntityToDTO(record);
+        });
+    }
+
+    @Override
+    public List<BorrowRecordResponse> searchBorrowRecordsStatisticBySpecReader(Date fromDate, Date toDate) {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        Long accountId;
+        if (principal instanceof CustomUserDetails userDetails) {
+            accountId = userDetails.getAccountId();
+        } else {
+            throw new RuntimeException("Cannot extract accountId: invalid principal");
+        }
+
+        Reader reader = readerRepository.findByAccountId(accountId)
+                .orElseThrow(() -> new ObjectNotExistException("Reader is not found" + accountId));
+        Long readerId = reader.getId();
+
+        LibraryCard card = libraryCardRepository.findByReader_Id(readerId)
+                .orElseThrow(() -> new ObjectNotExistException("LibraryCard is not found" + readerId));
+
+        Specification<BorrowRecord> specification = Specification.allOf();
+
+        specification = specification.and((root, query, cb) ->
+                cb.equal(root.get("libraryCard").get("id"), card.getId()));
+
+        if (fromDate != null){
+            specification = specification.and((root, query, cb) ->
+                    cb.greaterThanOrEqualTo(root.get("borrowedDate"), fromDate)
+            );
+        }
+
+        if (toDate != null){
+            specification = specification.and((root, query, cb) ->
+                    cb.lessThanOrEqualTo(root.get("borrowedDate"), toDate)
+            );
+        }
+        List<BorrowRecord> result = borrowRepository.findAll(specification);
+        return result.stream().map((record) -> {
+            return Mapper.mapEntityToDTO(record);
+        }).collect(Collectors.toList());
     }
 }

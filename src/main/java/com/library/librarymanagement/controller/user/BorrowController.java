@@ -21,6 +21,7 @@ public class BorrowController {
 
     private final BorrowService borrowService;
 
+    //todo: can fix into pathVariable
     @PostMapping()
     @PreAuthorize("hasRole('READER')")
     public ResponseEntity<ApiResponse> borrow(@RequestParam Long bookId, @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date allowDate) {
@@ -30,15 +31,48 @@ public class BorrowController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
-    public ResponseEntity<List<BorrowRecordResponse>> getAllBorrowRecords(
+    public ResponseEntity<Page<BorrowRecordResponse>> getAllBorrowRecords(
             @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "") String status,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date fromDate,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date toDate,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size
+            @RequestParam(required = false, defaultValue = "0") int page,
+            @RequestParam(defaultValue = "4") int size
     ) {
+        System.out.print("Page : " + page + " Size : " + size);
         Page<BorrowRecordResponse> result = borrowService.searchBorrowRecords(search, status, fromDate, toDate, page, size);
-        return ResponseEntity.ok(result.getContent());
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/statistics")
+    @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
+    public ResponseEntity<List<BorrowRecordResponse>> getAllBorrowStatics(
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date fromDate,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date toDate
+    ) {
+        List<BorrowRecordResponse> result = borrowService.searchBorrowRecordsStatistic(fromDate, toDate);
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/history")
+    @PreAuthorize("hasRole('READER')")
+    public ResponseEntity<Page<BorrowRecordResponse>> getBorrowalsBySpecReader(
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "") String status,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date fromDate,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date toDate,
+            @RequestParam(required = false, defaultValue = "0") int page,
+            @RequestParam(defaultValue = "4") int size) {
+        Page<BorrowRecordResponse> result = borrowService.searchBorrowRecordsBySpecReader(search, status, fromDate, toDate, page, size);
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/history/statistics")
+    @PreAuthorize("hasRole('READER')")
+    public ResponseEntity<List<BorrowRecordResponse>> getBorrowalsStatisticBySpecReader(
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date fromDate,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date toDate) {
+        List<BorrowRecordResponse> result = borrowService.searchBorrowRecordsStatisticBySpecReader(fromDate, toDate);
+        return ResponseEntity.ok(result);
     }
 }

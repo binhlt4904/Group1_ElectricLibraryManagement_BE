@@ -22,10 +22,10 @@ public class BorrowRecord {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Temporal(TemporalType.DATE)
+    @Temporal(TemporalType.TIMESTAMP)
     private Date borrowedDate;
 
-    @Temporal(TemporalType.DATE)
+    @Temporal(TemporalType.TIMESTAMP)
     private Date allowedDate;
 
     private String status;
@@ -37,7 +37,7 @@ public class BorrowRecord {
     @UpdateTimestamp
     private Timestamp updatedDate;
     private Long createdBy; //accountId
-    private Long updatedBy;
+    private Long updatedBy; //accountId
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "book_id", referencedColumnName = "id", nullable = false)

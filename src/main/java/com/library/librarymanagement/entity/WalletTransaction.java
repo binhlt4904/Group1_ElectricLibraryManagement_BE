@@ -1,11 +1,20 @@
 package com.library.librarymanagement.entity;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
 import java.util.Date;
 
 @Entity
 @Table(name = "wallet_transaction")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class WalletTransaction {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -13,8 +22,8 @@ public class WalletTransaction {
 
     private String status;
 
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_date")
+    @CreationTimestamp
     private Date createdDate;
 
     @Temporal(TemporalType.TIMESTAMP)
@@ -26,6 +35,9 @@ public class WalletTransaction {
 
     @Column(name = "transaction_code")
     private String transactionCode;
+
+    @Column(name = "type")
+    private String transactionType;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "wallet_id", referencedColumnName = "id", nullable = false)
