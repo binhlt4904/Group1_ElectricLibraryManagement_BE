@@ -17,5 +17,6 @@ public class ReviewResponse {
     private Integer rate;
     private Timestamp createdDate;
     private String reviewerName;
+    private Long reviewerId;
 
 }

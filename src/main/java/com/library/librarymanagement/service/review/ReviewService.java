@@ -2,10 +2,12 @@ package com.library.librarymanagement.service.review;
 
 
 import com.library.librarymanagement.dto.response.ReviewResponse;
+import com.library.librarymanagement.entity.Account;
 import com.library.librarymanagement.entity.Book;
 import com.library.librarymanagement.entity.Reader;
 import com.library.librarymanagement.entity.Review;
 import com.library.librarymanagement.repository.ReaderRepository;
+import com.library.librarymanagement.repository.account.AccountRepository;
 import com.library.librarymanagement.repository.review.ReviewRepository;
 import com.library.librarymanagement.repository.user.BookRepository;
 import jakarta.transaction.Transactional;
@@ -22,6 +24,7 @@ public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final BookRepository bookRepository;
     private final ReaderRepository readerRepository;
+    private final AccountRepository accountRepository;
 
     /** 🔹 Lấy danh sách review theo bookId */
     public List<ReviewResponse> getBookReviews(Long bookId) {
@@ -32,6 +35,8 @@ public class ReviewService {
             reviewResponse.setCreatedDate(review.getCreatedDate());
             reviewResponse.setRate(review.getRate());
             reviewResponse.setNote(review.getNote());
+            Reader reader = readerRepository.findById(review.getReviewer().getId()).orElse(null);
+            reviewResponse.setReviewerId(reader.getAccount().getId());
 
             // ✅ Nếu account null → dùng readerCode
             String reviewerName = (review.getReviewer().getAccount() != null)
@@ -77,7 +82,9 @@ public class ReviewService {
                 saved.getNote(),
                 saved.getRate(),
                 saved.getCreatedDate(),
-                reviewerName
+                reviewerName,
+                reader.getAccount().getId()
+
         );
     }
 
@@ -135,7 +142,8 @@ public class ReviewService {
                 saved.getNote(),
                 saved.getRate(),
                 saved.getCreatedDate(),
-                reviewerName
+                reviewerName,
+                review.getReviewer().getAccount().getId()
         );
     }
 
