@@ -13,6 +13,8 @@ import com.library.librarymanagement.repository.wallet.WalletRepository;
 import com.library.librarymanagement.repository.wallet.WalletTransactionRepository;
 import com.library.librarymanagement.service.wallet.WalletTransactionService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.*;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,6 +44,17 @@ public class WalletTransactionController {
         Reader reader= readerRepository.findByAccountId(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         return ResponseEntity.ok().body(walletTransactionService.getPendingTransaction(reader.getId()));
+    }
+
+    @GetMapping("/{userId}")
+    public ResponseEntity<?> getAllTransactions(@PathVariable Long userId,
+                                                @RequestParam(defaultValue = "0") int page,
+                                                @RequestParam(defaultValue = "4") int size,
+                                                @RequestParam (required = false) String type,
+                                                @RequestParam (required = false) String search) {
+        System.out.println("userId: "+ userId + ", page: " + page + ", size: " + size + ", type: " + type + ", search: " + search);
+        Pageable pageable = PageRequest.of(page, size);
+        return ResponseEntity.ok().body(walletTransactionService.findAllTransactions(pageable, userId, type, search));
     }
 
     @PostMapping("/handle")
@@ -82,6 +95,8 @@ public class WalletTransactionController {
                 t.setConfirmedDate(new Date());
                 t.setTransactionCode(t.getTransactionCode());
                 t.getWallet().setBalance(t.getWallet().getBalance().add(t.getAmount()));
+                t.getWallet().setLastUpdated(new Date());
+                t.setType("INCREASE");
                 walletTransactionRepository.save(t);
 
             }
