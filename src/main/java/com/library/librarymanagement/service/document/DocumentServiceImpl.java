@@ -10,6 +10,7 @@ import com.library.librarymanagement.entity.Document;
 import com.library.librarymanagement.exception.ObjectNotExistException;
 import com.library.librarymanagement.repository.admin.DocumentRepository;
 import com.library.librarymanagement.repository.CategoryRepository;
+import com.library.librarymanagement.service.custom_user_details.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -292,10 +294,55 @@ public class DocumentServiceImpl implements DocumentService {
         return false;
     }
 
+    /**
+     * Get the current authenticated user's account ID
+     * @return Account ID of the current user, or null if not authenticated
+     */
     private Long getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        // For now, return a default value; this should be enhanced based on your user details implementation
-        return 1L;
+        
+        if (authentication == null || !authentication.isAuthenticated()) {
+            log.warn("No authenticated user found");
+            return null;
+        }
+        
+        Object principal = authentication.getPrincipal();
+        
+        if (principal instanceof CustomUserDetails) {
+            CustomUserDetails userDetails = (CustomUserDetails) principal;
+            Long accountId = userDetails.getAccountId();
+            log.info("Current user account ID: {}", accountId);
+            return accountId;
+        }
+        
+        log.warn("Principal is not an instance of CustomUserDetails: {}", principal.getClass().getName());
+        return null;
+    }
+    
+    /**
+     * Get the current authenticated user's role
+     * @return Role name (e.g., "ROLE_ADMIN", "ROLE_LIBRARIAN", "ROLE_USER")
+     */
+    private String getCurrentUserRole() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return null;
+        }
+        
+        return authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .findFirst()
+                .orElse(null);
+    }
+    
+    /**
+     * Check if the current user has admin or librarian role
+     * @return true if user is admin or librarian
+     */
+    private boolean isAdminOrLibrarian() {
+        String role = getCurrentUserRole();
+        return role != null && (role.equals("ROLE_ADMIN") || role.equals("ROLE_LIBRARIAN"));
     }
 }
 
