@@ -1,9 +1,11 @@
 package com.library.librarymanagement.entity;
 import jakarta.persistence.*;
+import lombok.Data;
 
 import java.math.BigDecimal;
 import java.util.Date;
 
+@Data
 @Entity
 @Table(name = "wallet_transaction")
 public class WalletTransaction {
@@ -26,6 +28,9 @@ public class WalletTransaction {
 
     @Column(name = "transaction_code")
     private String transactionCode;
+
+    @Column(name = "type", length = 50)
+    private String type;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "wallet_id", referencedColumnName = "id", nullable = false)
