@@ -9,6 +9,7 @@ import java.util.List;
 
 @Repository
 public interface ReviewRepository extends JpaRepository<Review, Long> {
+    List<Review> findAllByBookIdOrderByCreatedDateDesc(Long bookId);
 
     List<Review> findAllByBookId(long id);
 }

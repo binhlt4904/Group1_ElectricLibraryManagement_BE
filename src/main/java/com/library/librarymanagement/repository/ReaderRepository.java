@@ -17,4 +17,5 @@ public interface ReaderRepository extends JpaRepository<Reader, Long> {
 """)
     Optional<Reader> fetchDetailByAccountId(@Param("accountId") Long accountId);
 
+
 }
