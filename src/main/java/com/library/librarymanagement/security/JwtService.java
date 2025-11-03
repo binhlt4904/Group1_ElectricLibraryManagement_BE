@@ -5,6 +5,7 @@ import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import io.jsonwebtoken.Jwts;
@@ -20,16 +21,24 @@ public class JwtService {
     private String secretKey;
 
     public String generateAccessToken(UserDetails userDetails) {
-        String role = userDetails.getAuthorities().toString();
+        String role = userDetails.getAuthorities()
+                .stream()
+                .findFirst()
+                .map(GrantedAuthority::getAuthority)
+                .orElse("")
+                .replace("ROLE_", "");
         Long accountId = -1L;
+        Long readerId = null;
         if (userDetails instanceof CustomUserDetails customUserDetails) {
             accountId = customUserDetails.getAccountId();
+            readerId = customUserDetails.getReaderId();
         }
         return Jwts.builder()
                 .setId(UUID.randomUUID().toString())
                 .setSubject(userDetails.getUsername())
                 .claim("role", role)
                 .claim("accountId", accountId)
+                .claim("readerId", readerId)
                 .setIssuer("nms")
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 15)) //15 minites
