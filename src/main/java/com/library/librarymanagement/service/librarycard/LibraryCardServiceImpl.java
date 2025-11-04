@@ -1,5 +1,6 @@
 package com.library.librarymanagement.service.librarycard;
 
+import com.library.librarymanagement.dto.request.CreateLibraryCardRequest;
 import com.library.librarymanagement.dto.request.RenewalRequestDto;
 import com.library.librarymanagement.dto.response.ApiResponse;
 import com.library.librarymanagement.dto.response.LibraryCardDto;
@@ -13,15 +14,20 @@ import com.library.librarymanagement.repository.ReaderRepository;
 import com.library.librarymanagement.service.custom_user_details.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -163,5 +169,151 @@ public class LibraryCardServiceImpl implements LibraryCardService {
         
         log.warn("Principal is not an instance of CustomUserDetails");
         return null;
+    }
+    
+    // ==================== ADMIN METHODS ====================
+    
+    @Override
+    @Transactional
+    public ApiResponse createLibraryCard(CreateLibraryCardRequest request) {
+        try {
+            // Check if reader exists
+            Reader reader = readerRepository.findById(request.getReaderId())
+                    .orElseThrow(() -> new ObjectNotExistException("Reader not found with ID: " + request.getReaderId()));
+            
+            // Check if reader already has a library card
+            if (libraryCardRepository.findByReaderId(request.getReaderId()).isPresent()) {
+                return ApiResponse.builder()
+                        .success(false)
+                        .message("Reader already has a library card")
+                        .build();
+            }
+            
+            // Generate unique card number
+            String cardNumber = generateCardNumber();
+            
+            // Calculate expiry date
+            Calendar calendar = Calendar.getInstance();
+            calendar.add(Calendar.YEAR, request.getValidityYears() != null ? request.getValidityYears() : 1);
+            Date expiryDate = calendar.getTime();
+            
+            // Create library card
+            LibraryCard card = new LibraryCard();
+            card.setCardNumber(cardNumber);
+            card.setIssueDate(new Date());
+            card.setExpiryDate(expiryDate);
+            card.setStatus("ACTIVE");
+            card.setReader(reader);
+            card.setCreatedDate(new Timestamp(System.currentTimeMillis()));
+            card.setIsDeleted(false);
+            
+            libraryCardRepository.save(card);
+            
+            log.info("Library card created successfully: {}", cardNumber);
+            
+            return ApiResponse.builder()
+                    .success(true)
+                    .message("Library card created successfully with card number: " + cardNumber)
+                    .build();
+                    
+        } catch (ObjectNotExistException e) {
+            log.error("Error creating library card", e);
+            return ApiResponse.builder()
+                    .success(false)
+                    .message(e.getMessage())
+                    .build();
+        } catch (Exception e) {
+            log.error("Error creating library card", e);
+            return ApiResponse.builder()
+                    .success(false)
+                    .message("Error creating library card: " + e.getMessage())
+                    .build();
+        }
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<LibraryCardDto> getAllLibraryCards(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return libraryCardRepository.findAll(pageable)
+                .stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public LibraryCardDto getCardByReaderId(Long readerId) {
+        LibraryCard card = libraryCardRepository.findByReaderId(readerId)
+                .orElseThrow(() -> new ObjectNotExistException("Library card not found for reader ID: " + readerId));
+        return convertToDto(card);
+    }
+    
+    @Override
+    @Transactional
+    public ApiResponse updateCardStatus(Long cardId, String status) {
+        try {
+            LibraryCard card = libraryCardRepository.findById(cardId)
+                    .orElseThrow(() -> new ObjectNotExistException("Library card not found with ID: " + cardId));
+            
+            card.setStatus(status.toUpperCase());
+            card.setUpdatedDate(new Timestamp(System.currentTimeMillis()));
+            libraryCardRepository.save(card);
+            
+            log.info("Card {} status updated to: {}", cardId, status);
+            
+            return ApiResponse.builder()
+                    .success(true)
+                    .message("Card status updated successfully")
+                    .build();
+                    
+        } catch (Exception e) {
+            log.error("Error updating card status", e);
+            return ApiResponse.builder()
+                    .success(false)
+                    .message("Error updating card status: " + e.getMessage())
+                    .build();
+        }
+    }
+    
+    @Override
+    @Transactional
+    public ApiResponse approveRenewal(Long renewalId) {
+        try {
+            CardRenewalDetails renewal = renewalRepository.findById(renewalId)
+                    .orElseThrow(() -> new ObjectNotExistException("Renewal request not found with ID: " + renewalId));
+            
+            LibraryCard card = libraryCardRepository.findByCardNumber(renewal.getCardCode())
+                    .orElseThrow(() -> new ObjectNotExistException("Library card not found"));
+            
+            // Update card expiry date
+            card.setExpiryDate(renewal.getNewExpiryDate());
+            card.setUpdatedDate(new Timestamp(System.currentTimeMillis()));
+            libraryCardRepository.save(card);
+            
+            log.info("Renewal approved for card: {}", card.getCardNumber());
+            
+            return ApiResponse.builder()
+                    .success(true)
+                    .message("Renewal approved successfully")
+                    .build();
+                    
+        } catch (Exception e) {
+            log.error("Error approving renewal", e);
+            return ApiResponse.builder()
+                    .success(false)
+                    .message("Error approving renewal: " + e.getMessage())
+                    .build();
+        }
+    }
+    
+    /**
+     * Generate unique card number in format: EL-YYYY-XXXXXX
+     */
+    private String generateCardNumber() {
+        Calendar calendar = Calendar.getInstance();
+        int year = calendar.get(Calendar.YEAR);
+        String randomPart = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+        return String.format("EL-%d-%s", year, randomPart);
     }
 }

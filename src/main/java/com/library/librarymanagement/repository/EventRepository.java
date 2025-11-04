@@ -17,9 +17,11 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     Page<Event> findAll(Pageable pageable);
     
     /**
-     * Search events by title
+     * Search events by title with eager fetching of relationships
      */
-    @Query("SELECT e FROM Event e WHERE " +
-           "(:title IS NULL OR LOWER(e.title) LIKE LOWER(CONCAT('%', :title, '%')))")
+    @Query("SELECT e FROM Event e " +
+           "LEFT JOIN FETCH e.fromUser su " +
+           "LEFT JOIN FETCH su.account a " +
+           "WHERE (:title IS NULL OR LOWER(e.title) LIKE LOWER(CONCAT('%', :title, '%')))")
     Page<Event> searchEvents(@Param("title") String title, Pageable pageable);
 }
