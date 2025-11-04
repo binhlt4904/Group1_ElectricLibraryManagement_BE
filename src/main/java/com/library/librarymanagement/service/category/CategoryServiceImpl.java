@@ -157,5 +157,22 @@ public class CategoryServiceImpl implements CategoryService {
                 .build();
     }
 
+    @Override
+    public List<CategoryResponse> getAllCategories() {
+        List<Category> categories = categoryRepository.findAll();
+
+        return categories.stream().map(category -> {
+            CategoryResponse response = new CategoryResponse();
+            response.setId(category.getId());
+            response.setName(category.getName());
+            response.setCreatedDate(category.getCreatedDate());
+            response.setUpdatedDate(category.getUpdatedDate());
+            response.setIsDeleted(category.getIsDeleted());
+            response.setCreatedBy(category.getCreatedBy());
+            response.setUpdatedBy(category.getUpdatedBy());
+            return response;
+        }).toList();
+    }
+
 }
 

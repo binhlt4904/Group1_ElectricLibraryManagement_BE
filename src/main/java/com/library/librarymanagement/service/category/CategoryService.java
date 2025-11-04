@@ -12,4 +12,5 @@ public interface CategoryService {
     CategoryResponse updateCategory(UpdateCategoryRequest req);
     CategoryResponse deleteCategory(Long id);
     CategoryResponse restoreCategory(Long id);
+    List<CategoryResponse> getAllCategories();
 }

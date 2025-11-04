@@ -1,5 +1,6 @@
 package com.library.librarymanagement.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import jakarta.persistence.*;
 
@@ -29,6 +30,7 @@ public class Wallet {
     private Date lastUpdated;
 
     @OneToMany(mappedBy = "wallet", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JsonIgnore
     private Set<WalletTransaction> transactions;
 }
 

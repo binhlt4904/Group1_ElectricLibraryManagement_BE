@@ -40,8 +40,10 @@ public class SecurityConfig {
                         .configurationSource(corsConfigurationSource()))
                 .csrf(csrf-> csrf.disable())
                 .authorizeHttpRequests((auth)->auth
-                        .requestMatchers("/api/v1/login","/api/v1/accounts/", "/api/v1/register", "/api/v1/public/**").permitAll()
-                        .anyRequest().permitAll()
+                        .requestMatchers("/uploads/**").permitAll()
+                        .requestMatchers("/api/v1/login","/api/v1/logout","/api/v1/accounts/", "/api/v1/register", "/api/v1/public/**",
+                                "/api/v1/reviews/**","/api/v1/admin/**").permitAll()
+                        .anyRequest().authenticated()
                 )
                 .sessionManagement((session)->
                 {session.sessionCreationPolicy(SessionCreationPolicy.STATELESS);})
@@ -64,7 +66,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
         corsConfiguration.setAllowedOrigins(List.of("http://localhost:5173"));
-        corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE","OPTIONS"));
+        corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE","OPTIONS", "PATCH"));
         corsConfiguration.setAllowedHeaders(List.of("*"));
         corsConfiguration.setExposedHeaders(List.of("Authorization"));
         corsConfiguration.setAllowCredentials(true);

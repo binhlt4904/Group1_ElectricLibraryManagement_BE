@@ -1,13 +1,22 @@
 package com.library.librarymanagement.entity;
 
 import jakarta.persistence.*;
+import lombok.*;
+
 import java.util.Date;
 import java.util.Set;
+@Getter
+@Setter
+
 @Entity
 @Table(
         name = "book",
         uniqueConstraints = @UniqueConstraint(name = "UQ_book_code", columnNames = "book_code")
 )
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Book {
 
     @Id
@@ -17,15 +26,23 @@ public class Book {
     @Column(name = "book_code", nullable = false, length = 100)
     private String bookCode;               // SKU / mã sản phẩm (unique ở constraint trên)
 
-    @Column(name = "title", length = 255)
+    @Column(name = "title", columnDefinition = "nvarchar(max)")
     private String title;
 
-    @Column(name = "description")
+
+    @Column(name = "description", columnDefinition = "nvarchar(max)")
     private String description;
 
     @Temporal(TemporalType.DATE)
     @Column(name = "imported_date")
     private Date importedDate;
+
+    @Temporal(TemporalType.DATE)
+    @Column(name = "published_date")
+    private Date publishedDate;
+
+    @Column(name = "image", length = 255)
+    private String image;
 
     @Column(name = "is_deleted")
     private Boolean isDeleted;
