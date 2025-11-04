@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
 @Getter
 @Setter
@@ -69,4 +70,6 @@ public class Book {
     @OneToMany(mappedBy = "book", fetch = FetchType.LAZY)
     private Set<Review> reviews;
 
+    @OneToMany(mappedBy = "book", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private Set<BookReport> reports = new HashSet<>();
 }

@@ -1,8 +1,10 @@
 package com.library.librarymanagement.util;
 
 import com.library.librarymanagement.dto.request.AccountRequest;
+import com.library.librarymanagement.dto.response.BookReportResponse;
 import com.library.librarymanagement.dto.response.BorrowRecordResponse;
 import com.library.librarymanagement.entity.Account;
+import com.library.librarymanagement.entity.BookReport;
 import com.library.librarymanagement.entity.BorrowRecord;
 
 import java.math.BigDecimal;
@@ -35,6 +37,25 @@ public class Mapper {
                 .returnedDate(borrowRecord.getReturnRecord() != null
                                     ? borrowRecord.getReturnRecord().getReturnedDate() : null
                 )
+                .build();
+    }
+
+    public static BookReportResponse mapEntityToDTO(BookReport bookReport) {
+        return BookReportResponse.builder()
+                .id(bookReport.getId())
+                .bookTitle(bookReport.getBook().getTitle())
+                .authorName(bookReport.getBook().getAuthor().getFullName())
+                .reporterName(bookReport.getReporter().getFullName())
+                .reporterEmail(bookReport.getReporter().getEmail())
+                .staffName(
+                        bookReport.getStaff() != null
+                            ? bookReport.getStaff().getFullName()
+                            : null
+                )
+                .reportType(bookReport.getReportType())
+                .description(bookReport.getDescription())
+                .status(bookReport.getStatus())
+                .createdAt(bookReport.getCreatedAt())
                 .build();
     }
 

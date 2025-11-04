@@ -80,6 +80,7 @@ public class BorrowServiceImpl implements BorrowService {
     }
 
     @Override
+    @Transactional
     public Page<BorrowRecordResponse> searchBorrowRecords(String search, String status, Date fromDate, Date toDate, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Specification<BorrowRecord> specification = Specification.allOf();

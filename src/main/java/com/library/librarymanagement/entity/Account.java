@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -48,5 +49,10 @@ public class Account {
     @JoinColumn(name = "role_id", referencedColumnName = "id", nullable = false)
     private Role role;
 
+    @OneToMany(mappedBy = "reporter", fetch = FetchType.LAZY)
+    private Set<BookReport> reportedBooks = new HashSet<>();
+
+    @OneToMany(mappedBy = "staff", fetch = FetchType.LAZY)
+    private Set<BookReport> handledReports = new HashSet<>();
 
 }
