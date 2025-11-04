@@ -12,7 +12,6 @@ public class WalletTransaction {
     private Long id;
 
     private String status;
-
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_date")
     private Date createdDate;
