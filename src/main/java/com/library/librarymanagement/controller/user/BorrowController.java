@@ -26,7 +26,7 @@ public class BorrowController {
     @PreAuthorize("hasRole('READER')")
     public ResponseEntity<ApiResponse> borrow(@RequestParam Long bookId, @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date allowDate) {
         borrowService.borrowBook(bookId, allowDate);
-        return ResponseEntity.ok(new ApiResponse(true, "Borrow Successful"));
+        return ResponseEntity.ok(new ApiResponse(true, "Borrow Successful", null));
     }
 
     @GetMapping
