@@ -1,6 +1,7 @@
 package com.library.librarymanagement.controller.admin;
 
 import com.library.librarymanagement.dto.request.BookRequest;
+import com.library.librarymanagement.dto.request.BookUpdateRequest;
 import com.library.librarymanagement.dto.response.BookContentResponse;
 import com.library.librarymanagement.dto.response.BookResponse;
 import com.library.librarymanagement.entity.Book;
@@ -48,6 +49,15 @@ public class AdminBookController {
     @GetMapping(path="/{id}")
     public ResponseEntity<?> getBookById(@PathVariable Long id) {
         return ResponseEntity.ok(bookService.getBookById(id));
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<?> updateBook(@PathVariable Long id, @RequestBody BookUpdateRequest book) {
+        System.out.println("Id: " + id);
+        System.out.println("book: "+ book);
+        System.out.println("Updating Book ID " + id + " with data: " + book);
+        bookService.updateBook(id, book);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/{id}/contents")

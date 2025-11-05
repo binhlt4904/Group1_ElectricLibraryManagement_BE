@@ -30,4 +30,5 @@ public interface ReaderRepository extends JpaRepository<Reader, Long> {
 """)
     Page<Reader> searchByFullNameOrReaderCode(@Param("query") String query, Pageable pageable);
 
+    boolean existsByReaderCode(String readerCode);
 }

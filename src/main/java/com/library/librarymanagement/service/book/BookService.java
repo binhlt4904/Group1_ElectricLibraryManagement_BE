@@ -2,6 +2,7 @@ package com.library.librarymanagement.service.book;
 
 
 import com.library.librarymanagement.dto.request.BookRequest;
+import com.library.librarymanagement.dto.request.BookUpdateRequest;
 import com.library.librarymanagement.dto.response.BookContentResponse;
 import com.library.librarymanagement.dto.response.BookResponse;
 import com.library.librarymanagement.entity.*;
@@ -90,6 +91,16 @@ public class BookService {
 
     }
 
+    public List<BookResponse> getListBook(){
+        List<Book> books = bookRepository.findAll();
+        List<BookResponse> bookResponses = new ArrayList<>();
+        for (Book book : books) {
+            BookResponse response= convert(book);
+            bookResponses.add(response);
+        }
+        return bookResponses;
+    }
+
     public List<BookResponse> getAllAdminBooks() {
         List<BookResponse> bookResponses = new ArrayList<>();
         List<Book> books = bookRepository.findAll();
@@ -148,6 +159,22 @@ public class BookService {
         return bookRepository.save(book);
     }
 
+    public void updateBook(Long id, BookUpdateRequest req) {
+        Book book = bookRepository.findById(id).orElseThrow(() -> new RuntimeException("Book not found"));
+        book.setTitle(req.getTitle());
+        Category category= categoryRepository.findByName(req.getCategory()).get();
+        System.out.println(category.getName());
+        book.setCategory(category);
+        Author author= authorRepository.findByFullName(req.getAuthor()).get();
+        book.setAuthor(author);
+        Publisher publisher= publisherRepository.findByCompanyName(req.getPublisher()).get();
+        book.setPublisher(publisher);
+        book.setPublishedDate(req.getPublishedDate());
+        book.setIsDeleted(req.getIsDeleted());
+        bookRepository.save(book);
+
+    }
+
     public List<BookContentResponse> getBookContent(Long id) {
         List<BookContent> bookContents = bookContentRepository.findByBookId(id);
         List<BookContentResponse> responses = new ArrayList<>();
@@ -157,6 +184,7 @@ public class BookService {
             response.setChapter(String.valueOf(bookContent.getChapter()));
             response.setContent(bookContent.getContent());
             response.setTitle(bookContent.getTitle());
+            response.setDeleted(bookContent.getIsDeleted());
             responses.add(response);
         }
 
@@ -166,12 +194,16 @@ public class BookService {
 
     public List<BookContentResponse> getBookContentUser(Long id) {
         List<BookContentResponse> responses = getBookContent(id);
+        List<BookContentResponse> filteredResponses = new ArrayList<>();
         for (BookContentResponse response : responses) {
             response.setContent(null);
         }
-
-
-        return responses;
+        for (BookContentResponse response : responses) {
+            if(!response.isDeleted()){
+                filteredResponses.add(response);
+            }
+        }
+        return filteredResponses;
     }
 
 

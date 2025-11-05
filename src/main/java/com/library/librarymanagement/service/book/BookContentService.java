@@ -27,51 +27,48 @@ public class BookContentService {
     private String uploadDir = "uploads";
 
     public BookContent create(Long bookId, String title, Integer chapter, MultipartFile file) throws IOException {
-        // 1) Validate cơ bản
-        if (bookId == null) throw new IllegalArgumentException("bookId is required");
-        if (title == null || title.isBlank()) throw new IllegalArgumentException("title is required");
-        if (chapter == null) throw new IllegalArgumentException("chapter is required");
-        if (file == null || file.isEmpty()) throw new IllegalArgumentException("file is required");
 
-        // 2) Validate PDF
-        String contentType = file.getContentType();
-        String originalName = Objects.requireNonNullElse(file.getOriginalFilename(), "");
-        boolean isPdfByMime = MediaType.APPLICATION_PDF_VALUE.equalsIgnoreCase(contentType);
-        boolean isPdfByName = originalName.toLowerCase().endsWith(".pdf");
-        if (!isPdfByMime && !isPdfByName) {
-            throw new IllegalArgumentException("File must be a PDF");
-        }
-
-        // 3) Tìm book
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new IllegalArgumentException("Book not found: " + bookId));
 
-        // 4) Tạo thư mục theo bookId
-        Path baseDir = Paths.get(uploadDir).toAbsolutePath().normalize();
-        Path bookDir = baseDir.resolve("books").resolve(String.valueOf(bookId)).resolve("contents");
-        Files.createDirectories(bookDir);
+        String relativePath= saveBookContentFile(book, file);
 
-        // 5) Đặt tên file an toàn
-        String safeName = sanitizeFilename(originalName);
-        if (!safeName.toLowerCase().endsWith(".pdf")) safeName += ".pdf";
-        String finalName = UUID.randomUUID() + "-" + safeName;
-        Path target = bookDir.resolve(finalName);
-
-        // 6) Ghi file
-        Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
-
-        // 7) Lưu DB (lưu đường dẫn tương đối để dễ move server)
-        String relativePath = Paths.get("uploads", "books", String.valueOf(bookId), "contents", finalName)
-                .toString().replace("\\", "/");
 
         BookContent bookContent = new BookContent();
         bookContent.setTitle(title);
         bookContent.setChapter(chapter);
         bookContent.setBook(book);
-        bookContent.setContent("/" + relativePath);
+        bookContent.setIsDeleted(false);
+        bookContent.setContent(relativePath);
 
         return bookContentRepository.save(bookContent);
     }
+
+    public BookContent update(Long contentId, String title, Integer chapter, MultipartFile file) throws IOException {
+
+        BookContent existing = bookContentRepository.findById(contentId)
+                .orElseThrow(() -> new IllegalArgumentException("Book content not found: " + contentId));
+
+        Book book = existing.getBook();
+
+        if (title != null && !title.isBlank()) {
+            existing.setTitle(title);
+        }
+        if (chapter != null) {
+            existing.setChapter(chapter);
+        }
+
+        if (file != null && !file.isEmpty()) {
+           String relativePath= saveBookContentFile(book, file);
+
+            deleteOldFile(existing.getContent());
+
+            existing.setContent(relativePath);
+        }
+
+        return bookContentRepository.save(existing);
+    }
+
 
     private String sanitizeFilename(String name) {
         // bỏ ký tự lạ
@@ -82,4 +79,56 @@ public class BookContentService {
         return bookContentRepository.findBookContentByBookIdAndChapter(bookId, chapter)
                 .orElseThrow(() -> new IllegalArgumentException("Book content not found for bookId " + bookId + " and chapter " + chapter));
     }
+
+    private void deleteOldFile(String relativePath) {
+        if (relativePath == null || relativePath.isBlank()) return;
+        try {
+            Path baseDir = Paths.get(uploadDir).toAbsolutePath().normalize();
+            Path oldFile = baseDir.resolve(relativePath.replaceFirst("^/uploads/", ""));
+            Files.deleteIfExists(oldFile);
+        } catch (Exception ex) {
+            System.err.println("⚠️ Could not delete old file: " + ex.getMessage());
+        }
+    }
+
+    private String saveBookContentFile(Book book, MultipartFile file) throws IOException {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("File is required");
+        }
+
+        // Lấy thông tin cơ bản
+        String originalName = Objects.requireNonNullElse(file.getOriginalFilename(), "");
+        String contentType = file.getContentType();
+
+        // ✅ Kiểm tra file PDF
+        boolean isPdfByMime = MediaType.APPLICATION_PDF_VALUE.equalsIgnoreCase(contentType);
+        boolean isPdfByName = originalName.toLowerCase().endsWith(".pdf");
+        if (!isPdfByMime && !isPdfByName) {
+            throw new IllegalArgumentException("File must be a PDF");
+        }
+
+        // ✅ Tạo thư mục lưu file
+        Path baseDir = Paths.get(uploadDir).toAbsolutePath().normalize();
+        Path bookDir = baseDir.resolve("books")
+                .resolve(String.valueOf(book.getId()))
+                .resolve("contents");
+        Files.createDirectories(bookDir);
+
+        // ✅ Tạo tên file an toàn & duy nhất
+        String safeName = sanitizeFilename(originalName);
+        if (!safeName.toLowerCase().endsWith(".pdf")) safeName += ".pdf";
+        String finalName = UUID.randomUUID() + "-" + safeName;
+        Path target = bookDir.resolve(finalName);
+
+        // ✅ Ghi file ra ổ đĩa
+        Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
+
+        // ✅ Tạo đường dẫn tương đối để lưu DB
+        String relativePath = Paths.get("uploads", "books", String.valueOf(book.getId()), "contents", finalName)
+                .toString()
+                .replace("\\", "/");
+
+        return "/" + relativePath; // => /uploads/books/5/contents/abc.pdf
+    }
+
 }

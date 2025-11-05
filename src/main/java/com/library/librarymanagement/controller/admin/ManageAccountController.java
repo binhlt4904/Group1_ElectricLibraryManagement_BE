@@ -27,7 +27,7 @@ public class ManageAccountController {
     private final StaffService staffService;
     // lấy tất cả danh sách account lọc theo status, fullname, role
     @GetMapping("accounts")
-    @PreAuthorize("hasRole('ADMIN')")
+//    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<AccountDto>> list(
             @RequestParam(name = "full_name", required = false) String fullName,
             @RequestParam(required = false) String status,
@@ -40,7 +40,7 @@ public class ManageAccountController {
     }
     // tạo mới 1 staff
     @PostMapping("accounts/create")
-    @PreAuthorize("hasRole('ADMIN')")
+//    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CreateStaffResponse> createStaff(
             @Valid @RequestBody CreateStaffRequest req
     ) {
@@ -49,7 +49,7 @@ public class ManageAccountController {
     }
     //update cả hai loại account
     @PutMapping("accounts/update/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+//    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AccountDto> updateAccount(
             @PathVariable("id") Long id,
             @Valid @RequestBody UpdateAccountRequest req
@@ -59,7 +59,7 @@ public class ManageAccountController {
     }
     // delete cả hai loai account
     @DeleteMapping("accounts/delete/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+//    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteAccount(@PathVariable("id") Long id) {
         accountService.deleteAccount(id);
         return ResponseEntity.noContent().build(); // 204
@@ -68,14 +68,14 @@ public class ManageAccountController {
     // view detail cho reader
     // ManageAccountController.java
     @GetMapping("accounts/reader/{accountId}")
-    @PreAuthorize("hasRole('ADMIN')")
+//    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ReaderDetailDto> getReaderDetailByAccountId(@PathVariable Long accountId) {
         return ResponseEntity.ok(readerService.getDetailByAccountId(accountId));
     }
 
     // View detail cho STAFF theo accountId
     @GetMapping("accounts/staff/{accountId}")
-    @PreAuthorize("hasRole('ADMIN')")
+//    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<StaffDetailDto> getStaffDetail(@PathVariable Long accountId) {
         return ResponseEntity.ok(staffService.getDetailByAccountId(accountId));
     }

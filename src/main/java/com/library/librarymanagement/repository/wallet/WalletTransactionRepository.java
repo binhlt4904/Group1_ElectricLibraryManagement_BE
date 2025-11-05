@@ -15,4 +15,5 @@ public interface WalletTransactionRepository extends JpaRepository<WalletTransac
     List<WalletTransaction> findByStatus(String status);
 
     List<WalletTransaction> findByWalletIdAndType(Long walletId, String type);
+
 }

@@ -8,6 +8,7 @@ import com.library.librarymanagement.dto.response.ApiResponse;
 import com.library.librarymanagement.dto.response.CreateStaffResponse;
 import com.library.librarymanagement.entity.Account;
 import org.springframework.data.domain.Page;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface AccountService {
     ApiResponse createAccount(AccountRequest accountRequest);
@@ -16,4 +17,5 @@ public interface AccountService {
     CreateStaffResponse createStaff(CreateStaffRequest req);
     AccountDto updateAccount(Long accountId, UpdateAccountRequest req);
     void deleteAccount(Long accountId);
+    void importReaders(MultipartFile file);
 }

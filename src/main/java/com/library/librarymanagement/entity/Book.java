@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
 @Getter
 @Setter
@@ -29,7 +30,8 @@ public class Book {
     @Column(name = "title", columnDefinition = "nvarchar(max)")
     private String title;
 
-
+    // @Lob
+    // Now comment annotation @Lob in this entity to avoid error
     @Column(name = "description", columnDefinition = "nvarchar(max)")
     private String description;
 
@@ -68,4 +70,6 @@ public class Book {
     @OneToMany(mappedBy = "book", fetch = FetchType.LAZY)
     private Set<Review> reviews;
 
+    @OneToMany(mappedBy = "book", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private Set<BookReport> reports = new HashSet<>();
 }

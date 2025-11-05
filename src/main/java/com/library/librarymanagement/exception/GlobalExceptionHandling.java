@@ -4,6 +4,8 @@ import com.library.librarymanagement.dto.response.ApiResponse;
 import org.springframework.http.HttpStatus;
 import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -18,30 +20,35 @@ import java.util.Map;
 public class GlobalExceptionHandling {
 
     @ExceptionHandler(ExistAttributeValueException.class)
-    public ResponseEntity<ApiResponse> handleExistAttributeException(ExistAttributeValueException e) {
-        return ResponseEntity.badRequest()
-                .body(ApiResponse.builder()
-                        .success(false)
-                        .message(e.getMessage())
-                        .build());
+    public ResponseEntity<?> handleExistAttributeException(ExistAttributeValueException e) {
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", HttpStatus.FOUND.value());
+        body.put("error", "Value of Attribute in object already existed");
+        body.put("message", e.getMessage());
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<ApiResponse> handleConstraintViolationException(ConstraintViolationException e) {
-        return ResponseEntity.badRequest()
-                .body(ApiResponse.builder()
-                        .success(false)
-                        .message(e.getMessage())
-                        .build());
+    public ResponseEntity<?> handleConstraintViolationException(ConstraintViolationException e) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", HttpStatus.CONFLICT.value());
+        body.put("error", "constraint already violated");
+        body.put("message", e.getMessage());
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(ObjectNotExistException.class)
-    public ResponseEntity<ApiResponse> handleObjectNotExistException(ObjectNotExistException e) {
-        return ResponseEntity.badRequest()
-                .body(ApiResponse.builder()
-                        .success(false)
-                        .message(e.getMessage())
-                        .build());
+    public ResponseEntity<?> handleObjectNotExistException(ObjectNotExistException e) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", HttpStatus.NOT_FOUND.value());
+        body.put("error", "Object not exist");
+        body.put("message", e.getMessage());
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Object> handleValidationExceptions(MethodArgumentNotValidException ex) {
@@ -91,9 +98,44 @@ public class GlobalExceptionHandling {
         return new ResponseEntity<>(body, ex.getStatusCode());
     }
 
+    @ExceptionHandler(ObjectExistedException.class)
+    public ResponseEntity<?> handleObjectExistedException(ObjectExistedException ex) {
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", HttpStatus.FOUND.value());
+        body.put("error", "Object already existed");
+        body.put("message", ex.getMessage());
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    }
 
     @ExceptionHandler(ExpiredJwtException.class)
     public ResponseEntity<?> handleExpiredJwtException(ExpiredJwtException e) {
-        return ResponseEntity.badRequest().build();
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", HttpStatus.BAD_REQUEST.value());
+        body.put("error", "Jwt token expired");
+        body.put("message", e.getMessage());
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<Object> handleAccessDenied(AccessDeniedException ex) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", HttpStatus.FORBIDDEN.value());
+        body.put("error", "Forbidden");
+        body.put("message", "Access Denied");
+        return new ResponseEntity<>(body, HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<Object> handleAuthenticationException(AuthenticationException ex) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", HttpStatus.UNAUTHORIZED.value());
+        body.put("error", "Unauthorized");
+        body.put("message", "Authentication required");
+        return new ResponseEntity<>(body, HttpStatus.UNAUTHORIZED);
     }
 }
