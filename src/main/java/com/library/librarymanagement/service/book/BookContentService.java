@@ -27,16 +27,12 @@ public class BookContentService {
     private String uploadDir = "uploads";
 
     public BookContent create(Long bookId, String title, Integer chapter, MultipartFile file) throws IOException {
-        //  Validate cơ bản
-        if (bookId == null) throw new IllegalArgumentException("bookId is required");
-        if (title == null || title.isBlank()) throw new IllegalArgumentException("title is required");
-        if (chapter == null) throw new IllegalArgumentException("chapter is required");
-        if (file == null || file.isEmpty()) throw new IllegalArgumentException("file is required");
 
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new IllegalArgumentException("Book not found: " + bookId));
 
         String relativePath= saveBookContentFile(book, file);
+
 
         BookContent bookContent = new BookContent();
         bookContent.setTitle(title);

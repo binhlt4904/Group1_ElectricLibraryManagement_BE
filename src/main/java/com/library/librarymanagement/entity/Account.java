@@ -1,14 +1,17 @@
 package com.library.librarymanagement.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
 @Table(name = "account")
 @Data
-@ToString(exclude = {"role","systemUser","reader"})
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -46,5 +49,10 @@ public class Account {
     @JoinColumn(name = "role_id", referencedColumnName = "id", nullable = false)
     private Role role;
 
+    @OneToMany(mappedBy = "reporter", fetch = FetchType.LAZY)
+    private Set<BookReport> reportedBooks = new HashSet<>();
+
+    @OneToMany(mappedBy = "staff", fetch = FetchType.LAZY)
+    private Set<BookReport> handledReports = new HashSet<>();
 
 }
