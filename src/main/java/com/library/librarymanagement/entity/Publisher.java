@@ -22,7 +22,8 @@ public class Publisher {
     private String address;
     private Integer establishedYear;
     private String website;
-
+    @Column(name = "avatar_url", columnDefinition = "nvarchar(MAX)")
+    private String avatarUrl;
     private Timestamp createdDate;
     private Timestamp updatedDate;
     private Boolean isDeleted;

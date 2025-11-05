@@ -1,15 +1,11 @@
-package com.library.librarymanagement.dto.response;
+package com.library.librarymanagement.dto.request;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
-import java.sql.Timestamp;
 import java.util.Date;
 
-@Getter
-@Setter
-public class AuthorResponse {
-    private Long id;
+@Data
+public class AuthorRequest {
     private String fullName;
     private String email;
     private String biography;
@@ -20,7 +16,4 @@ public class AuthorResponse {
     private String nationality;
     private String website;
     private String socialLinks;
-    private Timestamp createdDate;
-    private Timestamp updatedDate;
-    private Boolean isDeleted;
 }
