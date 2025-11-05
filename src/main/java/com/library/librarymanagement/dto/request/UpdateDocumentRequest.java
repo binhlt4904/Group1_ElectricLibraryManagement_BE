@@ -13,6 +13,12 @@ public class UpdateDocumentRequest {
 
     private String title;
 
+    private String description;
+
     private String categoryName;
+
+    private String fileName;
+
+    private String accessLevel;
 }
 

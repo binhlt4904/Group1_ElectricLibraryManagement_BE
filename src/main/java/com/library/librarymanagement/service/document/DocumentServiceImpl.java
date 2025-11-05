@@ -10,6 +10,7 @@ import com.library.librarymanagement.entity.Document;
 import com.library.librarymanagement.exception.ObjectNotExistException;
 import com.library.librarymanagement.repository.admin.DocumentRepository;
 import com.library.librarymanagement.repository.CategoryRepository;
+import com.library.librarymanagement.service.custom_user_details.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -118,8 +120,11 @@ public class DocumentServiceImpl implements DocumentService {
             // Create document
             Document document = Document.builder()
                     .title(request.getTitle())
+                    .description(request.getDescription())
                     .category(category)
                     .filePath(request.getFilePath())
+                    .fileName(request.getFileName())
+                    .accessLevel(request.getAccessLevel())
                     .importedDate(new Date())
                     .createdBy(userId)
                     .isDeleted(false)
@@ -176,10 +181,22 @@ public class DocumentServiceImpl implements DocumentService {
                 document.setTitle(request.getTitle());
             }
 
+            if (request.getDescription() != null && !request.getDescription().isBlank()) {
+                document.setDescription(request.getDescription());
+            }
+
             if (request.getCategoryName() != null && !request.getCategoryName().isBlank()) {
                 Category category = categoryRepository.findByName(request.getCategoryName())
                         .orElseThrow(() -> new ObjectNotExistException("Category not found: " + request.getCategoryName()));
                 document.setCategory(category);
+            }
+
+            if (request.getFileName() != null && !request.getFileName().isBlank()) {
+                document.setFileName(request.getFileName());
+            }
+
+            if (request.getAccessLevel() != null && !request.getAccessLevel().isBlank()) {
+                document.setAccessLevel(request.getAccessLevel());
             }
 
             documentRepository.save(document);
@@ -238,12 +255,23 @@ public class DocumentServiceImpl implements DocumentService {
         }
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Page<DocumentDto> getPublicDocuments(String title, String categoryName, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Document> documents = documentRepository.findPublicDocuments(title, categoryName, pageable);
+        return documents.map(this::convertToDto);
+    }
+
     private DocumentDto convertToDto(Document document) {
         return DocumentDto.builder()
                 .id(document.getId())
                 .title(document.getTitle())
+                .description(document.getDescription())
                 .categoryName(document.getCategory() != null ? document.getCategory().getName() : null)
                 .filePath(document.getFilePath())
+                .fileName(document.getFileName())
+                .accessLevel(document.getAccessLevel())
                 .importedDate(document.getImportedDate())
                 .createdBy(document.getCreatedBy())
                 .isDeleted(document.getIsDeleted())
@@ -266,10 +294,55 @@ public class DocumentServiceImpl implements DocumentService {
         return false;
     }
 
+    /**
+     * Get the current authenticated user's account ID
+     * @return Account ID of the current user, or null if not authenticated
+     */
     private Long getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        // For now, return a default value; this should be enhanced based on your user details implementation
-        return 1L;
+        
+        if (authentication == null || !authentication.isAuthenticated()) {
+            log.warn("No authenticated user found");
+            return null;
+        }
+        
+        Object principal = authentication.getPrincipal();
+        
+        if (principal instanceof CustomUserDetails) {
+            CustomUserDetails userDetails = (CustomUserDetails) principal;
+            Long accountId = userDetails.getAccountId();
+            log.info("Current user account ID: {}", accountId);
+            return accountId;
+        }
+        
+        log.warn("Principal is not an instance of CustomUserDetails: {}", principal.getClass().getName());
+        return null;
+    }
+    
+    /**
+     * Get the current authenticated user's role
+     * @return Role name (e.g., "ROLE_ADMIN", "ROLE_LIBRARIAN", "ROLE_USER")
+     */
+    private String getCurrentUserRole() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return null;
+        }
+        
+        return authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .findFirst()
+                .orElse(null);
+    }
+    
+    /**
+     * Check if the current user has admin or librarian role
+     * @return true if user is admin or librarian
+     */
+    private boolean isAdminOrLibrarian() {
+        String role = getCurrentUserRole();
+        return role != null && (role.equals("ROLE_ADMIN") || role.equals("ROLE_LIBRARIAN"));
     }
 }
 

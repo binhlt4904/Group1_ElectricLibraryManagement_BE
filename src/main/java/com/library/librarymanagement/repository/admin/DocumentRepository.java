@@ -38,5 +38,22 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
            WHERE d.id = :id AND d.isDeleted = false
            """)
     Optional<Document> findByIdAndNotDeleted(@Param("id") Long id);
+
+    /**
+     * Find all public documents with optional search and category filter
+     */
+    @Query("""
+           SELECT d
+           FROM Document d
+           WHERE d.isDeleted = false
+             AND d.accessLevel = 'public'
+             AND (:title IS NULL OR LOWER(d.title) LIKE LOWER(CONCAT('%', :title, '%')))
+             AND (:categoryName IS NULL OR d.category.name = :categoryName)
+           """)
+    Page<Document> findPublicDocuments(
+            @Param("title") String title,
+            @Param("categoryName") String categoryName,
+            Pageable pageable
+    );
 }
 
