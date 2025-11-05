@@ -35,11 +35,12 @@ public interface BorrowRecordDashboardRepository extends JpaRepository<BorrowRec
     List<PopularBookResponse> findTopBorrowedBooks(Pageable pageable);
 
     @Query("SELECT new com.library.librarymanagement.dto.response.admin_dashboard.BorrowingTrendResponse(" +
-            " FUNCTION('MONTH', br.borrowedDate), " +
-            " COUNT(br.id)) " +
+            " month(br.borrowedDate), " +
+            " count(br.id)) " +
             "FROM BorrowRecord br " +
-            "WHERE FUNCTION('YEAR', br.borrowedDate) = :year " +
-            "GROUP BY FUNCTION('MONTH', br.borrowedDate) " +
-            "ORDER BY FUNCTION('MONTH', br.borrowedDate)")
+            "WHERE year(br.borrowedDate) = :year " +
+            "GROUP BY month(br.borrowedDate) " +
+            "ORDER BY month(br.borrowedDate)")
     List<BorrowingTrendResponse> getMonthlyBorrowingTrends(@Param("year") int year);
+
 }

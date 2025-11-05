@@ -28,7 +28,7 @@ public class AdminStatisticsServiceImpl implements AdminStatisticsService {
     private final EventDashboardRepository eventDashboardRepository;
     @Override
     public TotalRevenueResponse getTotalRevenue() {
-        BigDecimal total = walletTransactionRepository.sumAmountByStatusIncreased();
+        BigDecimal total = walletTransactionRepository.sumAmountByTypeIncreasedAndStatusDone();
         if (total == null) {
             total = BigDecimal.ZERO;
         }

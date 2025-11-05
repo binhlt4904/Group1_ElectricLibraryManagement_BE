@@ -43,7 +43,7 @@ public class SecurityConfig {
                         .requestMatchers("/uploads/**").permitAll()
                         .requestMatchers("/api/v1/login","/api/v1/logout","/api/v1/accounts/", "/api/v1/register", "/api/v1/public/**",
                                 "/api/v1/reviews/**","/api/v1/admin/**").permitAll()
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 )
                 .sessionManagement((session)->
                 {session.sessionCreationPolicy(SessionCreationPolicy.STATELESS);})

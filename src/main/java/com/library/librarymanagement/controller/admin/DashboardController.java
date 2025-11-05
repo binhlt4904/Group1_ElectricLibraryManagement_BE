@@ -3,10 +3,15 @@ package com.library.librarymanagement.controller.admin;
 
 import com.library.librarymanagement.dto.response.admin_dashboard.*;
 import com.library.librarymanagement.service.adminDashboard.AdminStatisticsService;
+import com.library.librarymanagement.service.adminDashboard.DashboardExportService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Year;
 import java.util.List;
 
 @RestController
@@ -15,6 +20,7 @@ import java.util.List;
 public class DashboardController {
 
     private final AdminStatisticsService adminStatisticsService;
+    private final DashboardExportService dashboardExportService;
 
     // GET /api/admin/dashboard/total-revenue
     @GetMapping("dashboard/total-revenue")
@@ -59,5 +65,24 @@ public class DashboardController {
     @GetMapping("dashboard/borrowing-trends")
     public ResponseEntity<List<BorrowingTrendResponse>> getBorrowingTrendsCurrentYear() {
         return ResponseEntity.ok(adminStatisticsService.getBorrowingTrendsCurrentYear());
+    }
+
+    @GetMapping(value = "dashboard/export-excel", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public ResponseEntity<ByteArrayResource> exportDashboardExcel(
+            @RequestParam(value = "year", required = false) Integer year) {
+
+        int y = (year == null ? Year.now().getValue() : year);
+        byte[] bytes = dashboardExportService.exportDashboardExcel(y);
+
+        String filename = "dashboard_report_" + y + ".xlsx";
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(
+                MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+        headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"");
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .contentLength(bytes.length)
+                .body(new ByteArrayResource(bytes));
     }
 }
