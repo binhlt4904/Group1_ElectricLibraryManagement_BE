@@ -32,4 +32,10 @@ public interface EventService {
      * Delete event (admin only)
      */
     ApiResponse deleteEvent(Long id);
+    
+    /**
+     * Get event statistics (admin only)
+     * Returns aggregated statistics: upcoming events, total registrations, ongoing events, avg attendance
+     */
+    ApiResponse getEventStatistics();
 }

@@ -80,4 +80,16 @@ public class ManageAccountController {
         return ResponseEntity.ok(staffService.getDetailByAccountId(accountId));
     }
 
+    // Search readers for autocomplete (AsyncSelect)
+    @GetMapping("readers/search")
+    @PreAuthorize("hasAnyRole('ADMIN', 'LIBRARIAN')")
+    public ResponseEntity<Page<ReaderDetailDto>> searchReaders(
+            @RequestParam(required = false) String query,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Page<ReaderDetailDto> readers = readerService.searchReaders(query, page, size);
+        return ResponseEntity.ok(readers);
+    }
+
 }

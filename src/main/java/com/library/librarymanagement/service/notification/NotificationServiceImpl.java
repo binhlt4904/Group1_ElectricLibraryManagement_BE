@@ -136,7 +136,9 @@ public class NotificationServiceImpl implements NotificationService {
     public void sendNewBookNotification(Long bookId, String bookTitle) {
         // Get all users and send notification
         List<Account> allUsers = accountRepository.findAll();
+        log.info("📘 Sending new book notification to {} users for book: {}", allUsers.size(), bookTitle);
 
+        int successCount = 0;
         allUsers.forEach(user -> {
             Notification notification = Notification.builder()
                     .title("New Book Available")
@@ -149,16 +151,19 @@ public class NotificationServiceImpl implements NotificationService {
                     .build();
 
             Notification saved = notificationRepository.save(notification);
+            log.info("✅ Notification saved to DB with ID: {} for user: {}", saved.getId(), user.getUsername());
+            
             sendWebSocketNotification(user.getId(), mapToDto(saved));
         });
 
-        log.info("New book notification sent to all users for book: {}", bookTitle);
+        log.info("📘 New book notification completed for {} users - Book: {}", allUsers.size(), bookTitle);
     }
 
     @Override
     public void sendNewEventNotification(Long eventId, String eventTitle) {
         // Get all users and send notification
         List<Account> allUsers = accountRepository.findAll();
+        log.info("📅 Sending new event notification to {} users for event: {}", allUsers.size(), eventTitle);
 
         allUsers.forEach(user -> {
             Notification notification = Notification.builder()
@@ -172,10 +177,12 @@ public class NotificationServiceImpl implements NotificationService {
                     .build();
 
             Notification saved = notificationRepository.save(notification);
+            log.info("✅ Notification saved to DB with ID: {} for user: {}", saved.getId(), user.getUsername());
+            
             sendWebSocketNotification(user.getId(), mapToDto(saved));
         });
 
-        log.info("New event notification sent to all users for event: {}", eventTitle);
+        log.info("📅 New event notification completed for {} users - Event: {}", allUsers.size(), eventTitle);
     }
 
     @Override
@@ -238,13 +245,18 @@ public class NotificationServiceImpl implements NotificationService {
 
     private void sendWebSocketNotification(Long userId, NotificationDto notificationDto) {
         try {
+            log.debug("🔔 Sending WebSocket notification to user {} - Type: {}, Title: {}", 
+                    userId, notificationDto.getNotificationType(), notificationDto.getTitle());
+            
             messagingTemplate.convertAndSendToUser(
                     userId.toString(),
                     "/queue/notifications",
                     notificationDto
             );
+            
+            log.debug("✅ WebSocket notification sent successfully to user {}", userId);
         } catch (Exception e) {
-            log.warn("Failed to send WebSocket notification to user {}: {}", userId, e.getMessage());
+            log.error("❌ Failed to send WebSocket notification to user {}: {}", userId, e.getMessage(), e);
         }
     }
 

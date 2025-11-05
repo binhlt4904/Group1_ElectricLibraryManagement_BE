@@ -4,8 +4,10 @@ import com.library.librarymanagement.dto.response.ReaderDetailDto;
 import com.library.librarymanagement.entity.Account;
 import com.library.librarymanagement.entity.Reader;
 import com.library.librarymanagement.repository.ReaderRepository;
-import com.library.librarymanagement.service.account.ReaderService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +36,34 @@ public class ReaderServiceImpl implements ReaderService {
                 .status(a.getStatus())
                 .readerCode(r.getReaderCode())
                 .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ReaderDetailDto> searchReaders(String query, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Reader> readers;
+        
+        if (query == null || query.trim().isEmpty()) {
+            // If no query, return all readers
+            readers = readerRepository.findAll(pageable);
+        } else {
+            // Search by fullName or readerCode
+            readers = readerRepository.searchByFullNameOrReaderCode(query.trim(), pageable);
+        }
+        
+        // Map to DTO
+        return readers.map(r -> {
+            Account a = r.getAccount();
+            return ReaderDetailDto.builder()
+                    .email(a.getEmail())
+                    .fullName(a.getFullName())
+                    .username(a.getUsername())
+                    .phone(a.getPhone())
+                    .status(a.getStatus())
+                    .readerCode(r.getReaderCode())
+                    .build();
+        });
     }
 
 }

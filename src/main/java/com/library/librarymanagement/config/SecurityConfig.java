@@ -41,6 +41,7 @@ public class SecurityConfig {
                 .csrf(csrf-> csrf.disable())
                 .authorizeHttpRequests((auth)->auth
                         .requestMatchers("/uploads/**").permitAll()
+                        .requestMatchers("/ws/**").permitAll()  // Allow WebSocket handshake endpoints
                         .requestMatchers("/api/v1/login","/api/v1/logout","/api/v1/accounts/", "/api/v1/register", "/api/v1/public/**",
                                 "/api/v1/reviews/**","/api/v1/admin/**").permitAll()
                         .anyRequest().authenticated()

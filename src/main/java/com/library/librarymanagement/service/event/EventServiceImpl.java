@@ -30,7 +30,9 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -142,13 +144,14 @@ public class EventServiceImpl implements EventService {
             event.setFromUser(systemUser);
             event.setIsDeleted(false);
 
-            eventRepository.save(event);
+            Event savedEvent = eventRepository.save(event);
             
-            log.info("Event created successfully with ID: {}", event.getId());
+            log.info("Event created successfully with ID: {}", savedEvent.getId());
             
             return ApiResponse.builder()
                     .success(true)
                     .message("Event created successfully")
+                    .data(java.util.Map.of("id", savedEvent.getId()))
                     .build();
                     
         } catch (Exception e) {
@@ -251,6 +254,7 @@ public class EventServiceImpl implements EventService {
             return ApiResponse.builder()
                     .success(true)
                     .message("Event updated successfully")
+                    .data(java.util.Map.of("id", id))
                     .build();
 
         } catch (Exception e) {
@@ -368,5 +372,72 @@ public class EventServiceImpl implements EventService {
         }
         
         return null;
+    }
+    
+    @Override
+    public ApiResponse getEventStatistics() {
+        try {
+            // Get all events (not deleted)
+            List<Event> allEvents = eventRepository.findAll().stream()
+                    .filter(event -> !event.getIsDeleted())
+                    .collect(Collectors.toList());
+            
+            if (allEvents.isEmpty()) {
+                return ApiResponse.builder()
+                        .success(true)
+                        .message("No events found")
+                        .data(java.util.Map.of(
+                                "upcomingEvents", 0,
+                                "totalRegistrations", 0,
+                                "ongoingEvents", 0,
+                                "avgAttendance", 0.0
+                        ))
+                        .build();
+            }
+            
+            // Calculate statistics
+            long upcomingEvents = allEvents.stream()
+                    .filter(event -> "upcoming".equalsIgnoreCase(event.getStatus()))
+                    .count();
+            
+            int totalRegistrations = allEvents.stream()
+                    .mapToInt(event -> event.getRegistered() != null ? event.getRegistered() : 0)
+                    .sum();
+            
+            long ongoingEvents = allEvents.stream()
+                    .filter(event -> "ongoing".equalsIgnoreCase(event.getStatus()))
+                    .count();
+            
+            // Calculate average attendance percentage
+            double avgAttendance = allEvents.stream()
+                    .filter(event -> event.getCapacity() != null && event.getCapacity() > 0)
+                    .mapToDouble(event -> {
+                        int registered = event.getRegistered() != null ? event.getRegistered() : 0;
+                        return (double) registered / event.getCapacity() * 100;
+                    })
+                    .average()
+                    .orElse(0.0);
+            
+            log.info("Event statistics calculated: upcoming={}, totalReg={}, ongoing={}, avgAtt={}%", 
+                    upcomingEvents, totalRegistrations, ongoingEvents, Math.round(avgAttendance));
+            
+            return ApiResponse.builder()
+                    .success(true)
+                    .message("Statistics retrieved successfully")
+                    .data(java.util.Map.of(
+                            "upcomingEvents", upcomingEvents,
+                            "totalRegistrations", totalRegistrations,
+                            "ongoingEvents", ongoingEvents,
+                            "avgAttendance", Math.round(avgAttendance)
+                    ))
+                    .build();
+                    
+        } catch (Exception e) {
+            log.error("Error calculating event statistics", e);
+            return ApiResponse.builder()
+                    .success(false)
+                    .message("Error calculating statistics: " + e.getMessage())
+                    .build();
+        }
     }
 }

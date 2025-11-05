@@ -32,11 +32,13 @@ public class WebSocketAuthenticationInterceptor implements ChannelInterceptor {
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
 
-        // Only process CONNECT commands
+        // Only process CONNECT commands (not HTTP handshake requests)
         if (StompCommand.CONNECT.equals(accessor.getCommand())) {
+            log.debug("Processing STOMP CONNECT command");
             String authHeader = accessor.getFirstNativeHeader("Authorization");
 
             if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                log.debug("Authorization header found in STOMP CONNECT");
                 String token = authHeader.substring(7);
 
                 try {
@@ -70,6 +72,8 @@ public class WebSocketAuthenticationInterceptor implements ChannelInterceptor {
                     log.error("WebSocket authentication error: {}", e.getMessage());
                     accessor.setUser(null);
                 }
+            } else {
+                log.warn("No Authorization header found in STOMP CONNECT frame");
             }
         }
 

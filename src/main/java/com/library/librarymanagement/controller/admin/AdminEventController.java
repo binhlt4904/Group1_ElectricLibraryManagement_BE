@@ -80,4 +80,17 @@ public class AdminEventController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
     }
+    
+    /**
+     * Get event statistics
+     * GET /api/v1/admin/events/statistics
+     * Returns aggregated statistics across all events
+     */
+    @GetMapping("/statistics")
+    @PreAuthorize("hasAnyRole('ADMIN', 'LIBRARIAN')")
+    public ResponseEntity<ApiResponse> getEventStatistics() {
+        log.info("Fetching event statistics");
+        ApiResponse response = eventService.getEventStatistics();
+        return ResponseEntity.ok(response);
+    }
 }

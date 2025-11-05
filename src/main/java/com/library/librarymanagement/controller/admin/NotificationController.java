@@ -159,7 +159,8 @@ public class NotificationController {
         return ResponseEntity.ok(
                 ApiResponse.builder()
                         .success(true)
-                        .message("Unread count: " + count)
+                        .message("Unread count retrieved successfully")
+                        .data(java.util.Map.of("count", count))
                         .build()
         );
     }
