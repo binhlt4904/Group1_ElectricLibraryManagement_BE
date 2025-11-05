@@ -72,7 +72,7 @@ public class ReturnRecordServiceImpl implements ReturnRecordService {
 
         WalletTransaction walletTransaction = WalletTransaction.builder()
                 .amount(fine)
-                .transactionType("Decrease") // todo: notice to transactionType that what messsage
+                .type("DECREASE") // todo: notice to transactionType that what messsage
                 .wallet(wallet)
                 .status("Success") // todo: notice to status that what messsage
                 .build();
