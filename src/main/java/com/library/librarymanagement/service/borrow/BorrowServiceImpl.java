@@ -8,7 +8,7 @@ import com.library.librarymanagement.entity.Reader;
 import com.library.librarymanagement.exception.ObjectNotExistException;
 import com.library.librarymanagement.repository.borrow.BorrowRepository;
 import com.library.librarymanagement.repository.ReaderRepository;
-import com.library.librarymanagement.repository.borrow.LibraryCardRepository;
+import com.library.librarymanagement.repository.LibraryCardRepository;
 import com.library.librarymanagement.repository.user.BookRepository;
 import com.library.librarymanagement.security.JwtService;
 import com.library.librarymanagement.service.custom_user_details.CustomUserDetails;

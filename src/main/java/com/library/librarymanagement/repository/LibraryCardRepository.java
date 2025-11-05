@@ -27,4 +27,6 @@ public interface LibraryCardRepository extends JpaRepository<LibraryCard, Long> 
      * Check if card number exists
      */
     boolean existsByCardNumber(String cardNumber);
+
+    Optional<LibraryCard> findByReader_Id(Long id);
 }
