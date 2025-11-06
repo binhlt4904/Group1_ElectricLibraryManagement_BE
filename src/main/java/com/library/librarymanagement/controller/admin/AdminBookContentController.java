@@ -43,12 +43,13 @@ public class AdminBookContentController {
     @PatchMapping( path = "/{contentId}",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> update(
             @PathVariable Long contentId,
-            @RequestParam String title,
-            @RequestParam Integer chapter,
-            @RequestParam(value = "file",required = false) MultipartFile file
+            @RequestParam (required = false) String title,
+            @RequestParam (required = false) Integer chapter,
+            @RequestParam (value = "file",required = false) MultipartFile file,
+            @RequestParam (required = false) Boolean isDeleted
     ) throws Exception {
 
-        BookContent saved = bookContentService.update(contentId, title, chapter, file);
+        BookContent saved = bookContentService.update(contentId, title, chapter, file, isDeleted);
 
         List<BookContentResponse> contents = bookService.getBookContent(saved.getBook().getId());
 

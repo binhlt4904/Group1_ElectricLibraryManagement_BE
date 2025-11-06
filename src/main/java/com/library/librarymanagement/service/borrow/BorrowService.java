@@ -13,4 +13,5 @@ public interface BorrowService {
     List<BorrowRecordResponse> searchBorrowRecordsStatistic(Date fromDate, Date toDate);
     Page<BorrowRecordResponse> searchBorrowRecordsBySpecReader(String search, String status, Date fromDate, Date toDate, int page, int size);
     List<BorrowRecordResponse> searchBorrowRecordsStatisticBySpecReader(Date fromDate, Date toDate);
+    List<Integer> getActiveBookByAccountId(Long accountId);
 }

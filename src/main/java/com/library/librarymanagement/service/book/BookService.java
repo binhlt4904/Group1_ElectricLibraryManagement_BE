@@ -9,6 +9,7 @@ import com.library.librarymanagement.entity.*;
 import com.library.librarymanagement.repository.CategoryRepository;
 import com.library.librarymanagement.repository.author.AuthorRepository;
 import com.library.librarymanagement.repository.publisher.PublisherRepository;
+import com.library.librarymanagement.repository.review.ReviewRepository;
 import com.library.librarymanagement.repository.user.BookContentRepository;
 import com.library.librarymanagement.repository.user.BookRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,15 +27,13 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 public class BookService {
 
+    private final ReviewRepository reviewRepository;
     private String uploadDir = "uploads/books";
 
     private final BookRepository bookRepository;
@@ -101,15 +100,6 @@ public class BookService {
         return bookResponses;
     }
 
-    public List<BookResponse> getAllAdminBooks() {
-        List<BookResponse> bookResponses = new ArrayList<>();
-        List<Book> books = bookRepository.findAll();
-        for (Book book : books) {
-            BookResponse response= convert(book);
-            bookResponses.add(response);
-        }
-        return bookResponses;
-    }
 
     public Book createBook(BookRequest req) throws IOException {
         System.out.println(req.getPublishedDate());
@@ -171,6 +161,7 @@ public class BookService {
         book.setPublisher(publisher);
         book.setPublishedDate(req.getPublishedDate());
         book.setIsDeleted(req.getIsDeleted());
+        book.setDescription(req.getDescription());
         bookRepository.save(book);
 
     }
@@ -184,7 +175,7 @@ public class BookService {
             response.setChapter(String.valueOf(bookContent.getChapter()));
             response.setContent(bookContent.getContent());
             response.setTitle(bookContent.getTitle());
-            response.setDeleted(bookContent.getIsDeleted());
+            response.setIsDeleted(bookContent.getIsDeleted());
             responses.add(response);
         }
 
@@ -199,7 +190,7 @@ public class BookService {
             response.setContent(null);
         }
         for (BookContentResponse response : responses) {
-            if(!response.isDeleted()){
+            if(!response.getIsDeleted()){
                 filteredResponses.add(response);
             }
         }
@@ -218,11 +209,13 @@ public class BookService {
         bookResponse.setTitle(book.getTitle());
         bookResponse.setAuthor(book.getAuthor().getFullName());
         bookResponse.setImage(book.getImage());
-        bookResponse.setIsDeleted(String.valueOf(book.getIsDeleted()));
+        bookResponse.setIsDeleted(book.getIsDeleted());
         bookResponse.setCategory(book.getCategory().getName());
         bookResponse.setPublisher(book.getPublisher().getCompanyName());
         bookResponse.setPublishedDate(book.getPublishedDate());
         bookResponse.setImportedDate(book.getImportedDate());
+        bookResponse.setStarRating(reviewRepository.avgRateByBookId(book.getId()));
+        bookResponse.setReviewCount(reviewRepository.countByBookId(book.getId()));
         return bookResponse;
     }
 
@@ -250,4 +243,5 @@ public class BookService {
         return bookRepository.findAll(spec, pageable).map(this::convert);
 
     }
+
 }

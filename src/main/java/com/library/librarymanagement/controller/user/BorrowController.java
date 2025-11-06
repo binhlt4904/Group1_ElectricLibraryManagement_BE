@@ -75,4 +75,12 @@ public class BorrowController {
         List<BorrowRecordResponse> result = borrowService.searchBorrowRecordsStatisticBySpecReader(fromDate, toDate);
         return ResponseEntity.ok(result);
     }
+
+    @GetMapping("/active")
+    @PreAuthorize("hasRole('READER')")
+    public ResponseEntity<List<Integer>> getActiveBook(
+            @RequestParam Long userId) {
+        List<Integer> result = borrowService.getActiveBookByAccountId(userId);
+        return ResponseEntity.ok(result);
+    }
 }
