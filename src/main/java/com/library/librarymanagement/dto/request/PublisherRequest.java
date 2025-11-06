@@ -1,14 +1,9 @@
-package com.library.librarymanagement.dto.response;
+package com.library.librarymanagement.dto.request;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
-import java.sql.Timestamp;
-
-@Getter
-@Setter
-public class PublisherResponse {
-    private Long id;
+@Data
+public class PublisherRequest {
     private String companyName;
     private String email;
     private String phone;
@@ -18,6 +13,5 @@ public class PublisherResponse {
     private String avatarUrl;
     private String description;
     private Boolean isDeleted;
-    private Timestamp createdDate;
-    private Timestamp updatedDate;
+
 }

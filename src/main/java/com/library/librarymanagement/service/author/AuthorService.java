@@ -5,6 +5,10 @@ import com.library.librarymanagement.dto.response.AuthorResponse;
 import com.library.librarymanagement.entity.Author;
 import com.library.librarymanagement.repository.author.AuthorRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
@@ -21,6 +25,21 @@ public class AuthorService {
                 .map(this::mapToResponse)
                 .toList();
     }
+
+    // 🔹 Phân trang cơ bản
+    public Page<AuthorResponse> getAllPaged(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdDate").descending());
+        Page<Author> authors = authorRepository.findAll(pageable);
+        return authors.map(this::mapToResponse);
+    }
+
+    // 🔹 Phân trang + tìm kiếm
+    public Page<AuthorResponse> searchAuthors(String keyword, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdDate").descending());
+        Page<Author> authors = authorRepository.searchAuthors(keyword, pageable);
+        return authors.map(this::mapToResponse);
+    }
+
 
 
     /** 🔹 Thêm mới tác giả */
