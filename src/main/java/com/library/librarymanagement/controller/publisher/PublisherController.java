@@ -31,6 +31,11 @@ public class PublisherController {
         return publisherService.getAllPaged(page, size);
     }
 
+    @GetMapping("/")
+    public ResponseEntity<List<PublisherResponse>> getPublisher( ){
+        return ResponseEntity.ok(publisherService.getAllPublishers());
+    }
+
 
 
     /** 🔹 Lấy theo ID */

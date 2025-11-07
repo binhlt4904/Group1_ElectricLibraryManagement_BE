@@ -77,7 +77,6 @@ public class BorrowController {
     }
 
     @GetMapping("/active")
-    @PreAuthorize("hasRole('READER')")
     public ResponseEntity<List<Integer>> getActiveBook(
             @RequestParam Long userId) {
         List<Integer> result = borrowService.getActiveBookByAccountId(userId);

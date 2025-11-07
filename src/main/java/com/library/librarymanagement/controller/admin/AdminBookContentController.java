@@ -9,17 +9,20 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/public/admin/book-contents")
+@RequestMapping("/api/v1/admin/book-contents")
 @RequiredArgsConstructor
 public class AdminBookContentController {
     private final BookContentService bookContentService;
     private final BookService bookService;
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'LIBRARIAN')")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<BookContentResponse> create(
             @RequestParam Long bookId,
@@ -40,6 +43,7 @@ public class AdminBookContentController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'LIBRARIAN')")
     @PatchMapping( path = "/{contentId}",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> update(
             @PathVariable Long contentId,

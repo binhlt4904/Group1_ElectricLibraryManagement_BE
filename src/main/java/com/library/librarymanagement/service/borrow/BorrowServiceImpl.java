@@ -237,7 +237,10 @@ public class BorrowServiceImpl implements BorrowService {
         Reader reader = readerRepository.findByAccountId(accountId)
                 .orElseThrow(() -> new ObjectNotExistException("Reader is not found" + accountId));
         LibraryCard card = libraryCardRepository.findByReader_Id(reader.getId())
-                .orElseThrow(() -> new ObjectNotExistException("LibraryCard is not found" + reader.getId()));
+                .orElse(null);
+        if(card == null) {
+            return List.of();
+        }
         List<BorrowRecord> borrowRecords = borrowRepository.findAllByLibraryCardId(card.getId());
         for (BorrowRecord borrowRecord : borrowRecords) {
             System.out.println("BorrowRecord ID: " + borrowRecord.getId() + ", Status: " + borrowRecord.getStatus());
