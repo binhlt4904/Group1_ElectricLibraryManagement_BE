@@ -58,6 +58,9 @@ public class BorrowServiceImpl implements BorrowService {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new ObjectNotExistException("Book is not found" + bookId));
 
+        if (card.getStatus().equalsIgnoreCase("INACTIVE")){
+            throw new RuntimeException("LibraryCard is not active to borrow");
+        }
         if (borrowRepository.findActiveBorrowRecordByLibraryCardAndBook(card.getCardNumber(), book.getId()).isPresent()){
             throw new ObjectNotExistException("Book is already borrowed and need to return");
         }
@@ -235,12 +238,19 @@ public class BorrowServiceImpl implements BorrowService {
     @Override
     public List<Integer> getActiveBookByAccountId(Long accountId) {
         Reader reader = readerRepository.findByAccountId(accountId)
-                .orElseThrow(() -> new ObjectNotExistException("Reader is not found" + accountId));
+                .orElse(null);
+        if(reader == null) {
+            throw new RuntimeException("Only readers can read book");
+        }
         LibraryCard card = libraryCardRepository.findByReader_Id(reader.getId())
                 .orElse(null);
         if(card == null) {
             return List.of();
         }
+        if(card.getStatus().equalsIgnoreCase("INACTIVE")){
+            throw new RuntimeException("LibraryCard is not active to read book");
+        }
+
         List<BorrowRecord> borrowRecords = borrowRepository.findAllByLibraryCardId(card.getId());
         for (BorrowRecord borrowRecord : borrowRecords) {
             System.out.println("BorrowRecord ID: " + borrowRecord.getId() + ", Status: " + borrowRecord.getStatus());
@@ -251,6 +261,7 @@ public class BorrowServiceImpl implements BorrowService {
                     .map(record -> record.getBook().getId().intValue())
                     .collect(Collectors.toList());
         }
+
         return List.of();
     }
 }
