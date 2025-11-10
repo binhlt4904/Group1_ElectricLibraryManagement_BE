@@ -61,6 +61,11 @@ public class BorrowServiceImpl implements BorrowService {
         if (borrowRepository.findActiveBorrowRecordByLibraryCardAndBook(card.getCardNumber(), book.getId()).isPresent()){
             throw new ObjectNotExistException("Book is already borrowed and need to return");
         }
+
+        if (card.getStatus().equalsIgnoreCase("INACTIVE")){
+            throw new RuntimeException("LibraryCard is not active to borrow");
+        }
+
         Timestamp borrowDate = new Timestamp(System.currentTimeMillis());
         String borrowToken = jwtService.generateBorrowToken(card.getCardNumber(), book.getId(), borrowDate);
         BorrowRecord borrowRecord = BorrowRecord.builder()
