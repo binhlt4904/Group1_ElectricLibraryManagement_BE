@@ -2,12 +2,14 @@ package com.library.librarymanagement.service.book;
 
 
 import com.library.librarymanagement.dto.request.BookRequest;
+import com.library.librarymanagement.dto.request.BookUpdateRequest;
 import com.library.librarymanagement.dto.response.BookContentResponse;
 import com.library.librarymanagement.dto.response.BookResponse;
 import com.library.librarymanagement.entity.*;
 import com.library.librarymanagement.repository.CategoryRepository;
 import com.library.librarymanagement.repository.author.AuthorRepository;
 import com.library.librarymanagement.repository.publisher.PublisherRepository;
+import com.library.librarymanagement.repository.review.ReviewRepository;
 import com.library.librarymanagement.repository.user.BookContentRepository;
 import com.library.librarymanagement.repository.user.BookRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,15 +27,13 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 public class BookService {
 
+    private final ReviewRepository reviewRepository;
     private String uploadDir = "uploads/books";
 
     private final BookRepository bookRepository;
@@ -90,15 +90,16 @@ public class BookService {
 
     }
 
-    public List<BookResponse> getAllAdminBooks() {
-        List<BookResponse> bookResponses = new ArrayList<>();
+    public List<BookResponse> getListBook(){
         List<Book> books = bookRepository.findAll();
+        List<BookResponse> bookResponses = new ArrayList<>();
         for (Book book : books) {
             BookResponse response= convert(book);
             bookResponses.add(response);
         }
         return bookResponses;
     }
+
 
     public Book createBook(BookRequest req) throws IOException {
         System.out.println(req.getPublishedDate());
@@ -148,6 +149,23 @@ public class BookService {
         return bookRepository.save(book);
     }
 
+    public void updateBook(Long id, BookUpdateRequest req) {
+        Book book = bookRepository.findById(id).orElseThrow(() -> new RuntimeException("Book not found"));
+        book.setTitle(req.getTitle());
+        Category category= categoryRepository.findByName(req.getCategory()).get();
+        System.out.println(category.getName());
+        book.setCategory(category);
+        Author author= authorRepository.findByFullName(req.getAuthor()).get();
+        book.setAuthor(author);
+        Publisher publisher= publisherRepository.findByCompanyName(req.getPublisher()).get();
+        book.setPublisher(publisher);
+        book.setPublishedDate(req.getPublishedDate());
+        book.setIsDeleted(req.getIsDeleted());
+        book.setDescription(req.getDescription());
+        bookRepository.save(book);
+
+    }
+
     public List<BookContentResponse> getBookContent(Long id) {
         List<BookContent> bookContents = bookContentRepository.findByBookId(id);
         List<BookContentResponse> responses = new ArrayList<>();
@@ -157,6 +175,7 @@ public class BookService {
             response.setChapter(String.valueOf(bookContent.getChapter()));
             response.setContent(bookContent.getContent());
             response.setTitle(bookContent.getTitle());
+            response.setIsDeleted(bookContent.getIsDeleted());
             responses.add(response);
         }
 
@@ -166,12 +185,16 @@ public class BookService {
 
     public List<BookContentResponse> getBookContentUser(Long id) {
         List<BookContentResponse> responses = getBookContent(id);
+        List<BookContentResponse> filteredResponses = new ArrayList<>();
         for (BookContentResponse response : responses) {
             response.setContent(null);
         }
-
-
-        return responses;
+        for (BookContentResponse response : responses) {
+            if(!response.getIsDeleted()){
+                filteredResponses.add(response);
+            }
+        }
+        return filteredResponses;
     }
 
 
@@ -186,11 +209,13 @@ public class BookService {
         bookResponse.setTitle(book.getTitle());
         bookResponse.setAuthor(book.getAuthor().getFullName());
         bookResponse.setImage(book.getImage());
-        bookResponse.setIsDeleted(String.valueOf(book.getIsDeleted()));
+        bookResponse.setIsDeleted(book.getIsDeleted());
         bookResponse.setCategory(book.getCategory().getName());
         bookResponse.setPublisher(book.getPublisher().getCompanyName());
         bookResponse.setPublishedDate(book.getPublishedDate());
         bookResponse.setImportedDate(book.getImportedDate());
+        bookResponse.setStarRating(reviewRepository.avgRateByBookId(book.getId()));
+        bookResponse.setReviewCount(reviewRepository.countByBookId(book.getId()));
         return bookResponse;
     }
 
@@ -218,4 +243,5 @@ public class BookService {
         return bookRepository.findAll(spec, pageable).map(this::convert);
 
     }
+
 }

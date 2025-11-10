@@ -17,9 +17,11 @@ public class BookResponse {
     private String author;
     private String title;
     private String image;
-    private String isDeleted;
+    private Boolean isDeleted;
     private String category;
     private Date publishedDate;
     private Date importedDate;
     private String publisher;
+    private Double starRating;
+    private Long reviewCount;
 }

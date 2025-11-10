@@ -8,7 +8,7 @@ import com.library.librarymanagement.entity.Reader;
 import com.library.librarymanagement.exception.ObjectNotExistException;
 import com.library.librarymanagement.repository.borrow.BorrowRepository;
 import com.library.librarymanagement.repository.ReaderRepository;
-import com.library.librarymanagement.repository.borrow.LibraryCardRepository;
+import com.library.librarymanagement.repository.LibraryCardRepository;
 import com.library.librarymanagement.repository.user.BookRepository;
 import com.library.librarymanagement.security.JwtService;
 import com.library.librarymanagement.service.custom_user_details.CustomUserDetails;
@@ -58,6 +58,9 @@ public class BorrowServiceImpl implements BorrowService {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new ObjectNotExistException("Book is not found" + bookId));
 
+        if (card.getStatus().equalsIgnoreCase("INACTIVE")){
+            throw new RuntimeException("LibraryCard is not active to borrow");
+        }
         if (borrowRepository.findActiveBorrowRecordByLibraryCardAndBook(card.getCardNumber(), book.getId()).isPresent()){
             throw new ObjectNotExistException("Book is already borrowed and need to return");
         }
@@ -235,5 +238,35 @@ public class BorrowServiceImpl implements BorrowService {
         return result.stream().map((record) -> {
             return Mapper.mapEntityToDTO(record);
         }).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Integer> getActiveBookByAccountId(Long accountId) {
+        Reader reader = readerRepository.findByAccountId(accountId)
+                .orElse(null);
+        if(reader == null) {
+            throw new RuntimeException("Only readers can read book");
+        }
+        LibraryCard card = libraryCardRepository.findByReader_Id(reader.getId())
+                .orElse(null);
+        if(card == null) {
+            return List.of();
+        }
+        if(card.getStatus().equalsIgnoreCase("INACTIVE")){
+            throw new RuntimeException("LibraryCard is not active to read book");
+        }
+
+        List<BorrowRecord> borrowRecords = borrowRepository.findAllByLibraryCardId(card.getId());
+        for (BorrowRecord borrowRecord : borrowRecords) {
+            System.out.println("BorrowRecord ID: " + borrowRecord.getId() + ", Status: " + borrowRecord.getStatus());
+        }
+        if (!borrowRecords.isEmpty()) {
+            return borrowRecords.stream()
+                    .filter(record -> "Borrowed".equals(record.getStatus()))
+                    .map(record -> record.getBook().getId().intValue())
+                    .collect(Collectors.toList());
+        }
+
+        return List.of();
     }
 }

@@ -6,6 +6,7 @@ import com.library.librarymanagement.dto.response.CategoryResponse;
 import com.library.librarymanagement.entity.Category;
 import com.library.librarymanagement.repository.CategoryRepository;
 import com.library.librarymanagement.service.category.CategoryService;
+import com.library.librarymanagement.util.NameUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -50,7 +51,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public CategoryResponse createCategory(CreateCatgoryRequest req) {
-        String name = req.getName().trim();
+        String name = NameUtils.compactSpaces(req.getName());
 
         // Kiểm tra trùng tên
         if (categoryRepository.existsByNameIgnoreCase(name)) {
@@ -83,7 +84,7 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = categoryRepository.findById(req.getId())
                 .orElseThrow(() -> new RuntimeException("Category not found"));
 
-        String newName = req.getName().trim();
+        String newName = NameUtils.compactSpaces(req.getName().trim());
 
         // Kiểm tra trùng tên với category khác
         boolean exists = categoryRepository.existsByNameIgnoreCaseAndIdNot(newName, req.getId());

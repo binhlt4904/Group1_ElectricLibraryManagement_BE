@@ -1,6 +1,8 @@
 package com.library.librarymanagement.repository.account;
 
 import com.library.librarymanagement.entity.Account;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -36,4 +38,6 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
     // dùng cho update: kiểm tra trùng nhưng loại trừ chính record đang update
     boolean existsByUsernameIgnoreCaseAndIdNot(String username, Long id);
     boolean existsByEmailIgnoreCaseAndIdNot(String email, Long id);
+
+    boolean existsByEmailAndIdNot(@NotBlank(message = "Email is required") @Email(message = "Email is invalid") String email, Long id);
 }

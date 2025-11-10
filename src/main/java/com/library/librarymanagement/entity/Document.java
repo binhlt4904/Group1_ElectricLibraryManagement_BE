@@ -51,5 +51,13 @@ public class Document {
     @Column(name = "title")
     private String title;
 
+    @Column(name = "description")
+    private String description;
+
+    @Column(name = "file_name")
+    private String fileName;
+
+    @Column(name = "access_level")
+    private String accessLevel;
 
 }

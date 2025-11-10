@@ -5,7 +5,6 @@ import com.library.librarymanagement.entity.*;
 import com.library.librarymanagement.exception.ObjectNotExistException;
 import com.library.librarymanagement.repository.ReaderRepository;
 import com.library.librarymanagement.repository.admin.BorrowRecordRepository;
-import com.library.librarymanagement.repository.borrow.LibraryCardRepository;
 import com.library.librarymanagement.repository.return_record.ReturnRecordRepository;
 import com.library.librarymanagement.repository.user.BookRepository;
 import com.library.librarymanagement.repository.wallet.WalletRepository;
@@ -25,7 +24,6 @@ public class ReturnRecordServiceImpl implements ReturnRecordService {
 
     private final ReturnRecordRepository returnRecordRepository;
     private final ReaderRepository readerRepository;
-    private final LibraryCardRepository libraryCardRepository;
     private final BorrowRecordRepository borrowRecordRepository;
     private final BookRepository bookRepository;
     private final WalletRepository walletRepository;
@@ -72,7 +70,7 @@ public class ReturnRecordServiceImpl implements ReturnRecordService {
 
         WalletTransaction walletTransaction = WalletTransaction.builder()
                 .amount(fine)
-                .transactionType("Decrease") // todo: notice to transactionType that what messsage
+                .type("DECREASE") // todo: notice to transactionType that what messsage
                 .wallet(wallet)
                 .status("Success") // todo: notice to status that what messsage
                 .build();
