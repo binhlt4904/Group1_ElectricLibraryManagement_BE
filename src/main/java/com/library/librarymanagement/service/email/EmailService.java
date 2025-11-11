@@ -37,4 +37,16 @@ public class EmailService {
         mailSender.send(message);
     }
 
+    public void sendMailToResetPassword(String toEmail, String link) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(toEmail);
+        message.setSubject("FPT Electric Library: Link to reset password");
+        message.setText("Dear you,\n\n" +
+                "Please, access this link to reset password: \n" +
+                link + "\n" +
+                "Don't send to others\n\n" +
+                "Sincerely,\nFPT Electric Library");
+        mailSender.send(message);
+    }
+
 }

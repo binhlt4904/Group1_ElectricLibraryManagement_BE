@@ -67,6 +67,16 @@ public class JwtService {
                 .compact();
     }
 
+    public String generateResetToken(Timestamp expirationDate, Long accountId){
+        return Jwts.builder()
+                .setSubject("resetToken")
+                .claim("accountId", accountId)
+                .claim("expirationDate", expirationDate)
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .signWith(Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8)), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
     public String extractUsername(String token) {
         try {
             return Jwts.parserBuilder()

@@ -6,21 +6,18 @@ import com.library.librarymanagement.dto.request.UpdateAccountRequest;
 import com.library.librarymanagement.dto.response.AccountDto;
 import com.library.librarymanagement.dto.response.ApiResponse;
 import com.library.librarymanagement.dto.response.CreateStaffResponse;
-import com.library.librarymanagement.entity.Account;
-import com.library.librarymanagement.entity.Reader;
-import com.library.librarymanagement.entity.Role;
-import com.library.librarymanagement.entity.SystemUser;
+import com.library.librarymanagement.entity.*;
 import com.library.librarymanagement.exception.ConstraintViolationException;
 import com.library.librarymanagement.exception.ExistAttributeValueException;
-import com.library.librarymanagement.exception.ObjectExistedException;
 import com.library.librarymanagement.exception.ObjectNotExistException;
 import com.library.librarymanagement.repository.ReaderRepository;
 import com.library.librarymanagement.repository.SystemUserRepository;
 import com.library.librarymanagement.repository.account.AccountRepository;
+import com.library.librarymanagement.repository.reset_token.ResetPasswordTokenRepository;
 import com.library.librarymanagement.repository.role.RoleRepository;
+import com.library.librarymanagement.security.JwtService;
 import com.library.librarymanagement.service.email.EmailService;
 import com.library.librarymanagement.util.Mapper;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -43,6 +40,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -53,6 +51,9 @@ public class AccountServiceImpl implements AccountService {
     private final SystemUserRepository systemUserRepository;
     private final ReaderRepository readerRepository;
     private final EmailService emailService;
+    private final JwtService jwtService;
+    private final ResetPasswordTokenRepository tokenRepository;
+    private final ResetPasswordTokenRepository resetPasswordTokenRepository;
 
     @Value("${default.role}")
     private String defaultRole;
@@ -275,149 +276,6 @@ public class AccountServiceImpl implements AccountService {
         }
     }
 
-//    @Override
-//    @Transactional
-//    public void importReaders(MultipartFile file) {
-////        try (InputStream is = file.getInputStream();
-////             Workbook workbook = new XSSFWorkbook(is)) {
-////
-////            Sheet sheet = workbook.getSheetAt(0);
-////            //start from second row
-////            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
-////                Row row = sheet.getRow(i);
-////                if (row == null) continue;
-////
-////                String readerCode = row.getCell(0).getStringCellValue();
-////                String fullName = row.getCell(1).getStringCellValue();
-////                String email = row.getCell(2).getStringCellValue();
-////                String clazz = row.getCell(3).getStringCellValue();
-////                String department = row.getCell(4).getStringCellValue();
-////                String score = row.getCell(5).getStringCellValue();
-////                System.out.println(readerCode + " " + fullName + " " + email + " " + clazz + " " + department+ " " + score);
-////            }
-////
-////        } catch (IOException e) {
-////            throw new RuntimeException("Lỗi đọc file Excel: " + e.getMessage());
-////        }
-//
-//        try (InputStream is = file.getInputStream();
-//             Workbook workbook = new XSSFWorkbook(is)) {
-//
-//            Sheet sheet = workbook.getSheetAt(0);
-//
-//            Iterator<Row> iterator = sheet.iterator();
-//            while (iterator.hasNext()) {
-//                Row nextRow = iterator.next();
-//                if (nextRow.getRowNum() == 0) {
-//                    continue;
-//                }
-//                if (isRowEmpty(nextRow)) {
-//                    continue;
-//                }
-//                Iterator<Cell> cellIterator = nextRow.cellIterator();
-//                Account account = new Account();
-//                Reader reader = new Reader();
-//                String fullName = null;
-//                while (cellIterator.hasNext()) {
-//                    Cell Cell = cellIterator.next();
-//                    Object cellValue = getCellValue(Cell);
-//                    if (cellValue == null || cellValue.toString().isEmpty()) {
-//                        continue; // TODO: handle error
-//                    }
-//
-//                    //todo: chưa status va ma hoa password
-//                    int columnIndex = Cell.getColumnIndex();
-//                    switch (columnIndex) {
-//                        case 0: // reader_code
-//                            reader.setReaderCode((String) cellValue);
-//                            System.out.println("Reader code "+ reader.getReaderCode());
-//                            break;
-//                        case 1: // first_name
-//                            fullName = (String) cellValue;
-//                            break;
-//                        case 2: //last_name
-//                            fullName = (fullName == null ? "" : fullName + " ").concat((String) cellValue) ;
-//                            break;
-//                        case 3: // phone //TODO: check type
-//                            account.setPhone((String) cellValue);
-//                            System.out.println("account phone "+ account.getPhone());
-//                            break;
-//                        case 4: //email
-//                            account.setEmail((String) cellValue);
-//                            System.out.println("account email "+ account.getEmail());
-//                            break;
-//                        case 5: //username
-//                            account.setUsername((String) cellValue);
-//                            System.out.println("account username "+ account.getUsername());
-//                            break;
-//                        case 6: //password
-//                            account.setPassword((String) cellValue);
-//                            System.out.println("account pass "+ account.getPassword());
-//                            break;
-//                        default:
-//                            break;
-//                    }
-//                    System.out.print("Cell each row: " + cellValue);
-//                }
-//
-//                account.setFullName(fullName);
-//                Role userRole = roleRepository.findByName("ROLE_READER")
-//                        .orElseThrow(() -> new ObjectNotExistException("Role not found"));
-//                account.setRole(userRole);
-//                if (accountRepository.existsByUsernameIgnoreCase(account.getUsername())) {
-//                    throw new ObjectExistedException(account.getUsername());
-//                }
-//                if (accountRepository.existsByEmailIgnoreCase(account.getEmail())) {
-//                    throw new ObjectExistedException(account.getEmail());
-//                }
-//
-//                try {
-//                    accountRepository.save(account);
-//                    System.out.println("Account save: " +  account);
-//                    Account result = accountRepository.findByUsername(account.getUsername())
-//                            .orElseThrow(() -> new ObjectNotExistException("Account just save not found"));
-//                    reader.setAccount(account);
-//                    System.out.println("Reader save: " +  reader);
-//                    readerRepository.save(reader);
-//                    emailService.sendAccountInfor(account.getEmail(), account.getUsername(), account.getPassword());
-//                } catch (Exception e) {
-//                    throw new RuntimeException("Import failed" + e.getMessage(), e);
-//                }
-//            }
-////            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
-////                Row row = sheet.getRow(i);
-////                if (row == null) continue;
-////
-////                String readerCode = row.getCell(0).getStringCellValue();
-////                String fullName = row.getCell(1).getStringCellValue();
-////                String email = row.getCell(2).getStringCellValue();
-////                String clazz = row.getCell(3).getStringCellValue();
-////                String department = row.getCell(4).getStringCellValue();
-////                String score = row.getCell(5).getStringCellValue();
-////                System.out.println(readerCode + " " + fullName + " " + email + " " + clazz + " " + department+ " " + score);
-////            }
-//
-//        } catch (IOException e) {
-//            throw new RuntimeException("Lỗi đọc file Excel: " + e.getMessage());
-//        }
-//    }
-
-//    private boolean isRowEmpty(Row row) {
-//        if (row == null) return true;
-//
-//        short firstCellNum = row.getFirstCellNum();
-//        short lastCellNum = row.getLastCellNum();
-//        if (firstCellNum < 0 || lastCellNum < 0) return true;
-//
-//        for (int c = firstCellNum; c < lastCellNum; c++) {
-//            Cell cell = row.getCell(c, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
-//            if (cell != null && !cell.toString().trim().isEmpty()) {
-//                return false;
-//            }
-//        }
-//        return true;
-//    }
-
     @Override
     @Transactional
     public void importReaders(MultipartFile file) {
@@ -426,12 +284,10 @@ public class AccountServiceImpl implements AccountService {
 
             Sheet sheet = workbook.getSheetAt(0);
 
-            // ✅ Duyệt theo chỉ số thay vì iterator
             for (int i = 1; i <= sheet.getLastRowNum(); i++) {
                 Row nextRow = sheet.getRow(i);
                 if (nextRow == null || isRowEmpty(nextRow)) {
-                    System.out.println("⛔ Gặp dòng trống tại hàng " + (i + 1) + " => dừng import.");
-                    break; // 👉 Dừng import hẳn khi gặp dòng trống đầu tiên
+                    break;
                 }
 
                 Iterator<Cell> cellIterator = nextRow.cellIterator();
@@ -482,18 +338,14 @@ public class AccountServiceImpl implements AccountService {
                 account.setPassword(passwordEncoder.encode(account.getPassword()));
 
                 boolean skip = false;
-                // ✅ Check tồn tại username / email
                 if (accountRepository.existsByUsernameIgnoreCase(account.getUsername())) {
-//                    throw new ObjectExistedException(account.getUsername());
                     skip = true;
                 }
                 if (accountRepository.existsByEmailIgnoreCase(account.getEmail())) {
-//                    throw new ObjectExistedException(account.getEmail());
                     skip = true;
                 }
 
                 if (readerRepository.existsByReaderCode(reader.getReaderCode())) {
-                    System.out.println("⚠️ Bỏ qua reader (trùng reader_code): " + reader.getReaderCode());
                     skip = true;
                 }
 
@@ -504,16 +356,56 @@ public class AccountServiceImpl implements AccountService {
                     reader.setAccount(account);
                     readerRepository.save(reader);
                     emailService.sendAccountInfor(account.getEmail(), account.getUsername(), rawPassword);
-                    System.out.println("✅ Import thành công: " + account.getUsername());
                 } catch (Exception e) {
                     throw new RuntimeException("Import failed: " + e.getMessage(), e);
                 }
             }
 
         } catch (IOException e) {
-            throw new RuntimeException("Lỗi đọc file Excel: " + e.getMessage());
+            throw new RuntimeException("Errror for reading file Excel: " + e.getMessage());
         }
     }
+
+    @Override
+    public void forgetPassword(String email) {
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new ObjectNotExistException("System doesn't has account linked email: " + email));
+        System.out.println("Forget password: " + account.getEmail() + " " + account.getUsername());
+        Timestamp expiration = Timestamp.valueOf(LocalDateTime.now().plusMinutes(15));
+        String resetToken = jwtService.generateResetToken(expiration, account.getId());
+
+        PasswordResetToken passwordResetToken = PasswordResetToken.builder()
+                .account(account)
+                .token(resetToken)
+                .expiryDate(expiration)
+                .used(false)
+                .build();
+        tokenRepository.save(passwordResetToken);
+        String link = "http://localhost:5173/reset-password?token=" + resetToken;
+        emailService.sendMailToResetPassword(account.getEmail(), link);
+
+    }
+
+    @Override
+    public void resetPassword(String token, String newPassword) {
+        PasswordResetToken resetToken = resetPasswordTokenRepository.findByToken(token)
+                .orElseThrow(() -> new ObjectNotExistException("System doesn't exist link to reset with: " + token));
+        if (resetToken.isUsed() || resetToken.getExpiryDate().before(Timestamp.valueOf(LocalDateTime.now()))){
+            throw new IllegalArgumentException("Reset password link expired");
+        }
+
+        Account account = resetToken.getAccount();
+        account.setPassword(passwordEncoder.encode(newPassword));
+        try {
+            accountRepository.save(account);
+            resetToken.setUsed(true);
+            tokenRepository.save(resetToken);
+        }
+        catch (Exception e){
+            throw new RuntimeException("Reset password failed: " + e.getMessage(), e);
+        }
+    }
+
 
     private boolean isRowEmpty(Row row) {
         if (row == null) return true;
@@ -525,10 +417,10 @@ public class AccountServiceImpl implements AccountService {
         for (int c = firstCellNum; c < lastCellNum; c++) {
             Cell cell = row.getCell(c, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
             if (cell != null && cell.getCellType() != CellType.BLANK && !cell.toString().trim().isEmpty()) {
-                return false; // có dữ liệu thật
+                return false;
             }
         }
-        return true; // toàn bộ ô trống hoặc null
+        return true;
     }
 
     public static Object getCellValue(Cell cell) {
@@ -543,7 +435,7 @@ public class AccountServiceImpl implements AccountService {
                 FormulaEvaluator evaluator = workbook.getCreationHelper().createFormulaEvaluator();
                 cellValue = evaluator.evaluate(cell).getNumberValue();
                 break;
-            case NUMERIC:  // it only handles for phone so want to handle for integer, bonus
+            case NUMERIC:  // handles for phone so want to handle for integer, bonus
                 double num = cell.getNumericCellValue();
                 long longValue = (long) num;
                 if (longValue == num) {
@@ -566,4 +458,6 @@ public class AccountServiceImpl implements AccountService {
         }
         return cellValue;
     }
+
+
 }
