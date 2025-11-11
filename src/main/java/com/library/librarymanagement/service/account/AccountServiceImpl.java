@@ -53,7 +53,7 @@ public class AccountServiceImpl implements AccountService {
     private final EmailService emailService;
     private final JwtService jwtService;
     private final ResetPasswordTokenRepository tokenRepository;
-    private final ResetPasswordTokenRepository resetPasswordTokenRepository;
+//    private final ResetPasswordTokenRepository resetPasswordTokenRepository;
 
     @Value("${default.role}")
     private String defaultRole;
@@ -371,6 +371,12 @@ public class AccountServiceImpl implements AccountService {
         Account account = accountRepository.findByEmail(email)
                 .orElseThrow(() -> new ObjectNotExistException("System doesn't has account linked email: " + email));
         System.out.println("Forget password: " + account.getEmail() + " " + account.getUsername());
+
+        Optional<PasswordResetToken> existing = tokenRepository.findByAccountAndUsedFalse(account);
+        if (existing.isPresent() && existing.get().getExpiryDate().after(new Timestamp(System.currentTimeMillis()))) {
+            throw new IllegalArgumentException("Reset password link already sent. Please check your email.");
+        }
+
         Timestamp expiration = Timestamp.valueOf(LocalDateTime.now().plusMinutes(15));
         String resetToken = jwtService.generateResetToken(expiration, account.getId());
 
@@ -388,7 +394,7 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public void resetPassword(String token, String newPassword) {
-        PasswordResetToken resetToken = resetPasswordTokenRepository.findByToken(token)
+        PasswordResetToken resetToken = tokenRepository.findByToken(token)
                 .orElseThrow(() -> new ObjectNotExistException("System doesn't exist link to reset with: " + token));
         if (resetToken.isUsed() || resetToken.getExpiryDate().before(Timestamp.valueOf(LocalDateTime.now()))){
             throw new IllegalArgumentException("Reset password link expired");

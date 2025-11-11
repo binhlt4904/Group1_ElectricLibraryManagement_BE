@@ -5,7 +5,9 @@ import com.library.librarymanagement.dto.request.ForgetPasswordRequest;
 import com.library.librarymanagement.dto.request.ResetPasswordRequest;
 import com.library.librarymanagement.dto.response.ApiResponse;
 import com.library.librarymanagement.service.account.AccountService;
+import com.library.librarymanagement.service.account.RateLimiterService;
 import jakarta.persistence.PostRemove;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -21,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class AccountController {
 
     private final AccountService accountService;
+    private final RateLimiterService rateLimiterService;
 
     @PostMapping("/upload")
     @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
@@ -34,10 +37,15 @@ public class AccountController {
     }
 
     @PostMapping("/forget-password")
-    public ResponseEntity<String> forgetPassword(@RequestBody ForgetPasswordRequest request) {
+    public ResponseEntity<String> forgetPassword(@RequestBody ForgetPasswordRequest request, HttpServletRequest httpRequest) {
         if (request.getEmail().isBlank()) {
             return ResponseEntity.badRequest().body("Email empty!");
         }
+        String ip = httpRequest.getRemoteAddr();
+        if (!rateLimiterService.tryConsume(ip)) {
+            return ResponseEntity.status(404).body("Too many requests. Please try again later.");
+        }
+
         accountService.forgetPassword(request.getEmail());
         return ResponseEntity.ok("Link that reset password, is sent to your email!");
     }
