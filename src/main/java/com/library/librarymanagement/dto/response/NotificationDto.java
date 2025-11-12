@@ -1,29 +1,25 @@
 package com.library.librarymanagement.dto.response;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
-import java.sql.Timestamp;
+import java.time.Instant;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
 public class NotificationDto {
-
     private Long id;
     private String title;
     private String description;
+    private String message;
     private String notificationType;
+    private String type;
     private Boolean isRead;
-    private Timestamp createdDate;
-    private Timestamp readDate;
-    private Long toUserId;
-    private String toUsername;
+    private Boolean read;
+    private Instant createdDate;
+    private Instant createdAt;
     private Long relatedBookId;
     private Long relatedEventId;
     private Long relatedBorrowRecordId;
+    private Long relatedCardId;
 }
-

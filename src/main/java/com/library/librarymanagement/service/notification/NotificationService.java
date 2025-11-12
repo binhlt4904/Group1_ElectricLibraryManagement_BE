@@ -9,64 +9,27 @@ import java.util.List;
 
 public interface NotificationService {
 
-    /**
-     * Send a notification to a user
-     */
-    NotificationDto sendNotification(SendNotificationRequest request);
-
-    /**
-     * Get all notifications for a user
-     */
+    // Query APIs (temporary no-op implementations acceptable)
     Page<NotificationDto> getUserNotifications(Long userId, Pageable pageable);
-
-    /**
-     * Get unread notifications for a user
-     */
+    Page<NotificationDto> getNotificationsByType(Long userId, String type, Pageable pageable);
+    long getUnreadCount(Long userId);
+    void markAsRead(Long notificationId);
+    void markAllAsRead(Long userId);
+    void deleteNotification(Long notificationId);
     List<NotificationDto> getUnreadNotifications(Long userId);
-
-    /**
-     * Count unread notifications for a user
-     */
     Long countUnreadNotifications(Long userId);
 
-    /**
-     * Mark a notification as read
-     */
-    NotificationDto markAsRead(Long notificationId);
-
-    /**
-     * Mark all notifications as read for a user
-     */
-    void markAllAsRead(Long userId);
-
-    /**
-     * Get notifications by type for a user
-     */
-    Page<NotificationDto> getNotificationsByType(Long userId, String type, Pageable pageable);
-
-    /**
-     * Delete a notification
-     */
-    void deleteNotification(Long notificationId);
-
-    /**
-     * Send new book notification to all users
-     */
-    void sendNewBookNotification(Long bookId, String bookTitle);
-
-    /**
-     * Send new event notification to all users
-     */
+    // Sending APIs (used by services/controllers)
     void sendNewEventNotification(Long eventId, String eventTitle);
+    void sendEventUpdateNotification(Long eventId, String eventTitle, String changedFields);
+    void sendLibraryCardStatusNotification(Long userId, String status);
+    void sendCardExpiringNotification(Long userId, int daysUntilExpiry);
+    void sendBorrowReminderNotification(Long userId, String bookTitle, int daysUntilDue);
+    void sendOverdueNotification(Long userId, String bookTitle, int daysOverdue);
+    void sendNotification(SendNotificationRequest request);
 
-    /**
-     * Send reminder notification for books due in 3 days
-     */
-    void sendReminderNotifications();
-
-    /**
-     * Send overdue notification for books that are overdue
-     */
-    void sendOverdueNotifications();
+    // Scheduler stubs (keep ReminderScheduler compiling during rebuild)
+    default void sendReminderNotifications() {}
+    default void sendOverdueNotifications() {}
 }
 

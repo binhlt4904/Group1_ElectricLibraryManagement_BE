@@ -264,16 +264,16 @@ public class LibraryCardServiceImpl implements LibraryCardService {
             
             log.info("Card {} status updated from {} to: {}", cardId, oldStatus, status);
             
-            // Send notification if card is suspended
-            if ("SUSPENDED".equalsIgnoreCase(status)) {
+            // Send notification based on status change
+            Reader reader = card.getReader();
+            if (reader != null && reader.getAccount() != null) {
                 try {
-                    Reader reader = card.getReader();
-                    if (reader != null && reader.getAccount() != null) {
+                    if ("SUSPENDED".equalsIgnoreCase(status)) {
                         log.info("📧 Sending suspension notification to user: {}", reader.getAccount().getUsername());
                         notificationService.sendNotification(
                             com.library.librarymanagement.dto.request.SendNotificationRequest.builder()
                                 .title("Library Card Suspended")
-                                .description("Your library card " + card.getCardNumber() + " has been suspended. Please contact the library for more information.")
+                                .description("Your library card " + card.getCardNumber() + " has been suspended. Reason: Violation of library policies. Please contact the library for more information.")
                                 .notificationType("CARD_SUSPENDED")
                                 .toUserId(reader.getAccount().getId())
                                 .relatedBookId(null)
@@ -282,9 +282,23 @@ public class LibraryCardServiceImpl implements LibraryCardService {
                                 .build()
                         );
                         log.info("✅ Suspension notification sent to user: {}", reader.getAccount().getUsername());
+                    } else if ("ACTIVE".equalsIgnoreCase(status) && "SUSPENDED".equalsIgnoreCase(oldStatus)) {
+                        log.info("📧 Sending reactivation notification to user: {}", reader.getAccount().getUsername());
+                        notificationService.sendNotification(
+                            com.library.librarymanagement.dto.request.SendNotificationRequest.builder()
+                                .title("Library Card Reactivated")
+                                .description("Your library card " + card.getCardNumber() + " has been reactivated. You can now borrow books again.")
+                                .notificationType("CARD_REACTIVATED")
+                                .toUserId(reader.getAccount().getId())
+                                .relatedBookId(null)
+                                .relatedEventId(null)
+                                .relatedBorrowRecordId(null)
+                                .build()
+                        );
+                        log.info("✅ Reactivation notification sent to user: {}", reader.getAccount().getUsername());
                     }
                 } catch (Exception notifError) {
-                    log.error("❌ Failed to send suspension notification: {}", notifError.getMessage());
+                    log.error("❌ Failed to send card status notification: {}", notifError.getMessage());
                     // Don't fail the status update if notification fails
                 }
             }

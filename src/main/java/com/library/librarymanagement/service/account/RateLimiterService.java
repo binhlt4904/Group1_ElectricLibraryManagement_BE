@@ -11,7 +11,7 @@ public class RateLimiterService {
     private final ConcurrentHashMap<String, Bucket> cache = new ConcurrentHashMap<>();
 
     public boolean tryConsume(String key) {
-        Bucket bucket = cache.computeIfAbsent(key, this::newBucket);
+        Bucket bucket = cache.computeIfAbsent(key, k -> newBucket(k));
         return bucket.tryConsume(1);
     }
 

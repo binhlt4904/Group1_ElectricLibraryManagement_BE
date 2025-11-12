@@ -10,86 +10,56 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-
-/**
- * WebSocket authentication interceptor for JWT token validation
- * Validates JWT tokens on WebSocket CONNECT commands
- */
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class WebSocketAuthenticationInterceptor implements ChannelInterceptor {
 
     private final JwtService jwtService;
+    private final UserDetailsService userDetailsService;
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
 
-        // Only process CONNECT commands (not HTTP handshake requests)
+        // Chỉ xử lý MỘT LẦN DUY NHẤT tại lệnh CONNECT
         if (StompCommand.CONNECT.equals(accessor.getCommand())) {
-            log.debug("Processing STOMP CONNECT command");
             String authHeader = accessor.getFirstNativeHeader("Authorization");
-            if (authHeader == null) {
-                authHeader = accessor.getFirstNativeHeader("authorization");
-            }
 
             if (authHeader != null && authHeader.startsWith("Bearer ")) {
-                log.debug("Authorization header found in STOMP CONNECT");
                 String token = authHeader.substring(7);
-
                 try {
-                    // Validate token and extract username
                     String username = jwtService.extractUsername(token);
-
                     if (username != null) {
-                        // Create a simple UserDetails object for validation
-                        UserDetails userDetails = User.builder()
-                                .username(username)
-                                .password("")
-                                .authorities(new ArrayList<>())
-                                .build();
-
-                        // Validate token
+                        UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
                         if (jwtService.isValidToken(token, userDetails)) {
-                            // Create authentication token
+                            // Tạo Authentication và gán nó vào session WebSocket
                             Authentication auth = new UsernamePasswordAuthenticationToken(
-                                    username, null, new ArrayList<>()
+                                    userDetails, null, userDetails.getAuthorities()
                             );
-                            SecurityContextHolder.getContext().setAuthentication(auth);
-                            accessor.setUser(auth);
-                            log.info("✅ [WebSocket Auth] User authenticated and Principal set:");
-                            log.info("   → Username (Principal name): {}", username);
-                            log.info("   → Will receive messages at: /user/{}/queue/notifications", username);
+                            accessor.setUser(auth); // Dòng này là đủ để Spring duy trì Principal
+                            log.info("✅ [WebSocket Auth] Principal set for user: {}", username);
                         } else {
-                            log.warn("Invalid token for user: {}", username);
-                            accessor.setUser(null);
+                            log.warn("⚠️ [WebSocket Auth] Invalid token provided.");
+                            // Không cần throw exception, Spring sẽ tự từ chối kết nối nếu Principal là null
                         }
                     }
                 } catch (Exception e) {
-                    // Invalid token - connection will be rejected
-                    log.error("WebSocket authentication error: {}", e.getMessage());
-                    accessor.setUser(null);
+                    log.error("❌ [WebSocket Auth] Error during authentication: {}", e.getMessage());
                 }
             } else {
-                log.warn("No Authorization header found in STOMP CONNECT frame");
+                log.warn("⚠️ [WebSocket Auth] No Authorization header on CONNECT.");
             }
         }
-
-        // Log subscriptions to verify destination and principal
-        if (StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
-            String destination = accessor.getDestination();
-            String principal = accessor.getUser() != null ? accessor.getUser().getName() : null;
-            log.info("[WebSocket] SUBSCRIBE: destination={}, principal={}", destination, principal);
-        }
-
+        
+        // Không cần kiểm tra SUBSCRIBE ở đây nữa.
+        // Spring sẽ tự động xử lý việc gắn Principal vào các message tiếp theo.
         return message;
     }
 }
+
 

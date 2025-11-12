@@ -74,11 +74,11 @@ public class WebSocketNotificationController {
         if (principal != null) {
             log.info("Marking notification as read: {} by user: {}", notificationId, principal.getName());
             try {
-                NotificationDto notification = notificationService.markAsRead(notificationId);
+                notificationService.markAsRead(notificationId);
                 // Broadcast to all connected users
                 messagingTemplate.convertAndSend(
                         "/topic/notifications/marked-read",
-                        notification
+                        "Notification " + notificationId + " marked as read"
                 );
             } catch (Exception e) {
                 log.error("Error marking notification as read: {}", e.getMessage());

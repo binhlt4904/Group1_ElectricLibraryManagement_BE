@@ -11,6 +11,7 @@ import com.library.librarymanagement.repository.account.AccountRepository;
 import com.library.librarymanagement.repository.EventRegistrationRepository;
 import com.library.librarymanagement.repository.EventRepository;
 import com.library.librarymanagement.service.custom_user_details.CustomUserDetails;
+import com.library.librarymanagement.service.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -31,6 +32,7 @@ public class EventRegistrationServiceImpl implements EventRegistrationService {
     private final EventRegistrationRepository eventRegistrationRepository;
     private final EventRepository eventRepository;
     private final AccountRepository accountRepository;
+    private final NotificationService notificationService;
     
     @Override
     @Transactional
@@ -90,6 +92,24 @@ public class EventRegistrationServiceImpl implements EventRegistrationService {
             
             log.info("✅ User {} registered for event {}", userId, eventId);
             
+            // Send registration confirmation notification
+            try {
+                notificationService.sendNotification(
+                    com.library.librarymanagement.dto.request.SendNotificationRequest.builder()
+                        .title("Event Registration Confirmed")
+                        .description("You have successfully registered for the event: " + event.getTitle())
+                        .notificationType("EVENT_REGISTERED")
+                        .toUserId(userId)
+                        .relatedEventId(eventId)
+                        .relatedBookId(null)
+                        .relatedBorrowRecordId(null)
+                        .build()
+                );
+                log.info("✅ Registration confirmation notification sent to user: {}", userId);
+            } catch (Exception notifyEx) {
+                log.error("Failed to send registration confirmation notification: {}", notifyEx.getMessage());
+            }
+            
             return ApiResponse.builder()
                     .success(true)
                     .message("Successfully registered for event")
@@ -139,6 +159,25 @@ public class EventRegistrationServiceImpl implements EventRegistrationService {
             }
             
             log.info("✅ User {} cancelled registration for event {}", userId, eventId);
+            
+            // Send cancellation notification
+            try {
+                String eventTitle = event != null ? event.getTitle() : "Unknown Event";
+                notificationService.sendNotification(
+                    com.library.librarymanagement.dto.request.SendNotificationRequest.builder()
+                        .title("Event Registration Cancelled")
+                        .description("Your registration for the event: " + eventTitle + " has been cancelled.")
+                        .notificationType("EVENT_CANCELLED")
+                        .toUserId(userId)
+                        .relatedEventId(eventId)
+                        .relatedBookId(null)
+                        .relatedBorrowRecordId(null)
+                        .build()
+                );
+                log.info("✅ Cancellation notification sent to user: {}", userId);
+            } catch (Exception notifyEx) {
+                log.error("Failed to send cancellation notification: {}", notifyEx.getMessage());
+            }
             
             return ApiResponse.builder()
                     .success(true)

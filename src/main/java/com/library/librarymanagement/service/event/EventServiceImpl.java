@@ -256,9 +256,17 @@ public class EventServiceImpl implements EventService {
             // Update the updated date
             event.setUpdatedDate(new Date());
 
-            eventRepository.save(event);
+            Event updatedEvent = eventRepository.save(event);
 
             log.info("Event updated successfully with ID: {}", id);
+
+            try {
+                // Broadcast NEW_EVENT notification to READER and ADMIN users
+                notificationService.sendNewEventNotification(updatedEvent.getId(), updatedEvent.getTitle());
+                log.info("📅 NEW_EVENT notifications dispatched for updated event ID: {}", updatedEvent.getId());
+            } catch (Exception notifyEx) {
+                log.error("Failed to dispatch NEW_EVENT notifications for updated event {}: {}", updatedEvent.getId(), notifyEx.getMessage());
+            }
 
             return ApiResponse.builder()
                     .success(true)

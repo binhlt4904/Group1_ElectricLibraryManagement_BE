@@ -1,8 +1,6 @@
 package com.library.librarymanagement.repository.notification;
 
-import java.sql.Timestamp;
-import java.util.List;
-
+import com.library.librarymanagement.entity.Notification;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -10,63 +8,58 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import com.library.librarymanagement.entity.Account;
-import com.library.librarymanagement.entity.Notification;
+import java.util.List;
 
 @Repository
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
 
     /**
-     * Find all notifications for a specific user
+     * Get all notifications for a user, ordered by created date descending
      */
-    Page<Notification> findByToUserOrderByCreatedDateDesc(Account toUser, Pageable pageable);
+    Page<Notification> findByAccount_IdOrderByCreatedDateDesc(Long accountId, Pageable pageable);
 
     /**
-     * Find unread notifications for a specific user
+     * Get unread notifications for a user
      */
-    @Query("SELECT n FROM Notification n WHERE n.toUser = :toUser AND n.isRead = false ORDER BY n.createdDate DESC")
-    List<Notification> findUnreadNotifications(@Param("toUser") Account toUser);
+    List<Notification> findByAccount_IdAndIsReadFalseOrderByCreatedDateDesc(Long accountId);
 
     /**
-     * Count unread notifications for a specific user
+     * Get unread notifications for a user with pagination
      */
-    @Query("SELECT COUNT(n) FROM Notification n WHERE n.toUser = :toUser AND n.isRead = false")
-    Long countUnreadNotifications(@Param("toUser") Account toUser);
+    Page<Notification> findByAccount_IdAndIsReadFalseOrderByCreatedDateDesc(Long accountId, Pageable pageable);
 
     /**
-     * Find notifications by type for a specific user
+     * Count unread notifications for a user
      */
-    @Query("SELECT n FROM Notification n WHERE n.toUser = :toUser AND n.notificationType = :type ORDER BY n.createdDate DESC")
-    Page<Notification> findByTypeForUser(@Param("toUser") Account toUser, @Param("type") String type, Pageable pageable);
+    long countByAccount_IdAndIsReadFalse(Long accountId);
 
     /**
-     * Find notifications created within a date range
+     * Get notifications by type for a user
      */
-    @Query("SELECT n FROM Notification n WHERE n.toUser = :toUser AND n.createdDate BETWEEN :startDate AND :endDate ORDER BY n.createdDate DESC")
-    List<Notification> findNotificationsByDateRange(@Param("toUser") Account toUser, @Param("startDate") Timestamp startDate, @Param("endDate") Timestamp endDate);
+    Page<Notification> findByAccount_IdAndNotificationTypeOrderByCreatedDateDesc(Long accountId, String notificationType, Pageable pageable);
 
     /**
-     * Find notifications related to a specific book
+     * Get notifications by type for a user (unread only)
      */
-    @Query("SELECT n FROM Notification n WHERE n.relatedBookId = :bookId ORDER BY n.createdDate DESC")
-    List<Notification> findByRelatedBookId(@Param("bookId") Long bookId);
+    Page<Notification> findByAccount_IdAndNotificationTypeAndIsReadFalseOrderByCreatedDateDesc(Long accountId, String notificationType, Pageable pageable);
 
     /**
-     * Find notifications related to a specific event
+     * Delete all notifications for a user
      */
-    @Query("SELECT n FROM Notification n WHERE n.relatedEventId = :eventId ORDER BY n.createdDate DESC")
-    List<Notification> findByRelatedEventId(@Param("eventId") Long eventId);
+    void deleteByAccount_Id(Long accountId);
 
     /**
-     * Find notifications related to a specific borrow record
+     * Find notifications by related event ID
      */
-    @Query("SELECT n FROM Notification n WHERE n.relatedBorrowRecordId = :borrowRecordId ORDER BY n.createdDate DESC")
-    List<Notification> findByRelatedBorrowRecordId(@Param("borrowRecordId") Long borrowRecordId);
+    List<Notification> findByRelatedEventId(Long eventId);
 
     /**
-     * Find all unread notifications of a specific type for a user
+     * Find notifications by related book ID
      */
-    @Query("SELECT n FROM Notification n WHERE n.toUser = :toUser AND n.notificationType = :type AND n.isRead = false ORDER BY n.createdDate DESC")
-    List<Notification> findUnreadNotificationsByType(@Param("toUser") Account toUser, @Param("type") String type);
+    List<Notification> findByRelatedBookId(Long bookId);
+
+    /**
+     * Find notifications by related card ID
+     */
+    List<Notification> findByRelatedCardId(Long cardId);
 }
-
