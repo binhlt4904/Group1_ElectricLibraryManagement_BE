@@ -30,7 +30,7 @@ public class BorrowController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
     public ResponseEntity<Page<BorrowRecordResponse>> getAllBorrowRecords(
             @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "") String status,
@@ -45,7 +45,7 @@ public class BorrowController {
     }
 
     @GetMapping("/statistics")
-    @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
     public ResponseEntity<List<BorrowRecordResponse>> getAllBorrowStatics(
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date fromDate,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date toDate

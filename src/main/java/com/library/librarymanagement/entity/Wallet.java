@@ -1,8 +1,11 @@
 package com.library.librarymanagement.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import jakarta.persistence.*;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -11,6 +14,10 @@ import java.util.Set;
 @Entity
 @Table(name = "wallet")
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+
 public class Wallet {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

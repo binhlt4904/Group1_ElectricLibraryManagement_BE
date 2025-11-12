@@ -8,6 +8,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -21,7 +24,9 @@ public class BookContentController {
     private final BookService bookService;
 
 
+
     @GetMapping("/{bookId}/{chapterId}")
+    @PreAuthorize("hasRole('READER')")
     public ResponseEntity<BookContentResponse> get(@PathVariable Long bookId, @PathVariable Integer chapterId) throws Exception {
         BookContent content = bookContentService.getBookContent(bookId, chapterId);
         BookContentResponse response = new BookContentResponse();
