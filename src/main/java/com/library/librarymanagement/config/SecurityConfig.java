@@ -43,7 +43,8 @@ public class SecurityConfig {
                         .requestMatchers("/uploads/**").permitAll()
                         .requestMatchers("/api/v1/login","/api/v1/logout","/api/v1/refresh","/api/v1/accounts/",
                                 "/api/v1/register", "/api/v1/public/**","/api/v1/admin/**","/api/v1/reviews/**",
-                                "/api/v1/authors/**", "/api/v1/accounts/forget-password", "/api/v1/accounts/reset-password").permitAll()
+                                "/api/v1/authors/**", "/api/v1/accounts/forget-password", "/api/v1/accounts/reset-password",
+                                "/api/v1/public/book-contents","/api/reports").permitAll()
                         .anyRequest().authenticated()
 
                 )

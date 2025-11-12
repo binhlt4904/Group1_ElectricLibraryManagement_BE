@@ -38,7 +38,6 @@ import org.springframework.web.server.ResponseStatusException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
-import java.sql.Date;
 import java.util.*;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -353,8 +352,6 @@ public class AccountServiceImpl implements AccountService {
                 }
 
                 if (skip) continue;
-
-                // Generate unique card number
                 String cardNumber = generateCardNumber();
                 // Calculate expiry date
                 Calendar calendar = Calendar.getInstance();
@@ -370,11 +367,10 @@ public class AccountServiceImpl implements AccountService {
                 card.setReader(reader);
                 card.setCreatedDate(new Timestamp(System.currentTimeMillis()));
                 card.setIsDeleted(false);
-
-
-
                 try {
+                    System.out.println("Account: " + account.getUsername() + ", " + account.getEmail());
                     accountRepository.save(account);
+                    System.out.println("Reader: "+ reader.getReaderCode() + ", " + fullName);
                     reader.setAccount(account);
                     readerRepository.save(reader);
                     Wallet readerWallet = Wallet.builder()

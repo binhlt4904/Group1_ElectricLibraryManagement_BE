@@ -13,6 +13,7 @@ import com.library.librarymanagement.repository.wallet.WalletRepository;
 import com.library.librarymanagement.repository.wallet.WalletTransactionRepository;
 import com.library.librarymanagement.service.wallet.WalletTransactionService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.*;
@@ -37,7 +38,9 @@ public class WalletTransactionController {
     private final WalletRepository walletRepository;
     private final WalletTransactionService walletTransactionService;
     private final ReaderRepository readerRepository;
-    private final RestTemplate restTemplate;
+
+
+
 
     @GetMapping("/{userId}/pending")
     public ResponseEntity<?> getPending(@PathVariable Long userId) {
@@ -78,90 +81,5 @@ public class WalletTransactionController {
         return ResponseEntity.ok().build();
     }
 
-    @Transactional
-    @Scheduled(fixedRate = 30000) // 1 phút
-    public void checkPendingTransactions() {
-        System.out.println("Checking pending transactions with Sepay API...");
-          List<WalletTransaction> pendingTransactions = walletTransactionRepository.findByStatus("PENDING");
 
-          boolean matched = false;
-        for (WalletTransaction t : pendingTransactions) {
-            System.out.println("Checking transaction: " + t.getTransactionCode() + " with amount: " + t.getAmount());
-             matched = checkWithSepayAPI(t.getTransactionCode(), t.getAmount());
-            System.out.println("matched: "+ matched);
-            if (matched) {
-                System.out.println("matched");
-                t.setStatus("DONE");
-                t.setConfirmedDate(new Date());
-                t.setTransactionCode(t.getTransactionCode());
-                t.getWallet().setBalance(t.getWallet().getBalance().add(t.getAmount()));
-                t.getWallet().setLastUpdated(new Date());
-                t.setType("INCREASE");
-                walletTransactionRepository.save(t);
-
-            }
-
-        }
-
-    }
-
-    public boolean checkWithSepayAPI(String transactionCode, BigDecimal amount) {
-        String url = "https://my.sepay.vn/userapi/transactions/list";
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("GSA6INY97MR4URKVRAVHR3VOQGQAL20CS1BBG5PQI4KKFFECCB9NFYT3Z27ZXXNU");
-
-        HttpEntity<String> entity = new HttpEntity<>(headers);
-
-        try {
-            ResponseEntity<String> response = restTemplate.exchange(
-                    url,
-                    HttpMethod.GET,
-                    entity,
-                    String.class
-            );
-
-            System.out.println("🔎 JSON Sepay trả về: " + response.getBody());
-
-            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
-                ObjectMapper objectMapper = new ObjectMapper();
-                JsonNode root = objectMapper.readTree(response.getBody());
-                JsonNode transactions = root.get("transactions");
-
-                if (transactions != null && transactions.isArray()) {
-                    for (JsonNode txn : transactions) {
-                        String content = txn.get("transaction_content").asText();
-                        String amountInStr = txn.get("amount_in").asText();
-
-                        System.out.println("➡️ Nội dung: " + content);
-                        System.out.println("➡️ Tiền vào: " + amountInStr);
-                        String sanitizedTransactionCode = transactionCode.replace("_", "");
-
-                        System.out.println("sanitizedTransactionCode: " + sanitizedTransactionCode);
-
-
-                        if (content != null && content.contains(sanitizedTransactionCode)) {
-                            try {
-                                BigDecimal parsedAmount = new BigDecimal(amountInStr);
-                                if ( parsedAmount.compareTo(amount) == 0 ) {
-                                    return true;
-                                }
-                            } catch (NumberFormatException e) {
-                                System.err.println("⚠️ Không parse được amount_in: " + amountInStr);
-                            }
-                        }
-                    }
-                } else {
-                    System.out.println("⚠️ Không tìm thấy trường 'transactions' hoặc không phải mảng.");
-                }
-            }
-
-        } catch (HttpClientErrorException e) {
-            System.err.println("❌ HTTP Error: " + e.getStatusCode() + " - " + e.getResponseBodyAsString());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return false;
-    }
 }

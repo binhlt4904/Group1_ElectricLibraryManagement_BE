@@ -35,12 +35,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/api/v1/refresh"
     );
 
-    private static final List<String> PATH_STARTED = List.of(
-            "/uploads/",
-            "/api/v1/public/",
-            "/api/v1/reviews/",
-            "/api/v1/authors/"
-    );
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -53,12 +47,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 //            return;
 //        }
 
-        for (String endpoint : PATH_STARTED) {
-            if (path.startsWith(endpoint)) {
-                filterChain.doFilter(request, response);
-                return;
-            }
-        }
 
         for (String endpoint : PUBLIC_ENDPOINTS) {
             if (path.equalsIgnoreCase(endpoint)) {
@@ -90,6 +78,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 }
             }
+
+            System.out.println("DA VAO TRONG FILTER");
         } catch (ExpiredJwtException e) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;

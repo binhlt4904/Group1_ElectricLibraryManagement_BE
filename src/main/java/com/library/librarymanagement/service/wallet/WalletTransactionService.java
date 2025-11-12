@@ -16,4 +16,6 @@ public interface WalletTransactionService {
     WalletTransactionResponse updateAmountInTransaction(Long transactionId, Double newAmount);
 
     void updateTransactionStatus(Long transactionId, String status);
+
+    void checkingPendingTransactions();
 }

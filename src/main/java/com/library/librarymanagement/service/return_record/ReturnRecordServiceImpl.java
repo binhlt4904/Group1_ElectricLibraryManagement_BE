@@ -72,7 +72,8 @@ public class ReturnRecordServiceImpl implements ReturnRecordService {
                 .amount(fine)
                 .type("DECREASE") // todo: notice to transactionType that what messsage
                 .wallet(wallet)
-                .status("Success") // todo: notice to status that what messsage
+                .transactionCode("FINE-" + borrowRecord.getId() + "-" + System.currentTimeMillis())
+                .status("DONE") // todo: notice to status that what messsage
                 .build();
         try {
             ReturnRecord result = returnRecordRepository.save(returnRecord);
@@ -81,7 +82,9 @@ public class ReturnRecordServiceImpl implements ReturnRecordService {
             borrowRecord.setUpdatedBy(accountId); // add with accountId
             borrowRecordRepository.save(borrowRecord);
             walletRepository.save(wallet);
-            walletTransactionRepository.save(walletTransaction);
+            if (fine.compareTo(new BigDecimal(0)) > 0)  {
+                walletTransactionRepository.save(walletTransaction);
+            }
             ReturnRecordResponse returnRecordResponse = ReturnRecordResponse.builder()
                     .bookTitle(borrowRecord.getBook().getTitle())
                     .allowedDate(borrowRecord.getAllowedDate())
