@@ -10,11 +10,13 @@ import com.library.librarymanagement.entity.*;
 import com.library.librarymanagement.exception.ConstraintViolationException;
 import com.library.librarymanagement.exception.ExistAttributeValueException;
 import com.library.librarymanagement.exception.ObjectNotExistException;
+import com.library.librarymanagement.repository.LibraryCardRepository;
 import com.library.librarymanagement.repository.ReaderRepository;
 import com.library.librarymanagement.repository.SystemUserRepository;
 import com.library.librarymanagement.repository.account.AccountRepository;
 import com.library.librarymanagement.repository.reset_token.ResetPasswordTokenRepository;
 import com.library.librarymanagement.repository.role.RoleRepository;
+import com.library.librarymanagement.repository.wallet.WalletRepository;
 import com.library.librarymanagement.security.JwtService;
 import com.library.librarymanagement.service.email.EmailService;
 import com.library.librarymanagement.util.Mapper;
@@ -35,12 +37,11 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Iterator;
-import java.util.Optional;
-import java.util.Set;
+import java.math.BigDecimal;
+import java.sql.Date;
+import java.util.*;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -53,6 +54,8 @@ public class AccountServiceImpl implements AccountService {
     private final EmailService emailService;
     private final JwtService jwtService;
     private final ResetPasswordTokenRepository tokenRepository;
+    private final WalletRepository walletRepository;
+    private final LibraryCardRepository libraryCardRepository;
 //    private final ResetPasswordTokenRepository resetPasswordTokenRepository;
 
     @Value("${default.role}")
@@ -351,10 +354,37 @@ public class AccountServiceImpl implements AccountService {
 
                 if (skip) continue;
 
+                // Generate unique card number
+                String cardNumber = generateCardNumber();
+                // Calculate expiry date
+                Calendar calendar = Calendar.getInstance();
+                calendar.add(Calendar.YEAR, 3);
+                java.util.Date expiryDate = calendar.getTime();
+
+                // Create library card
+                LibraryCard card = new LibraryCard();
+                card.setCardNumber(cardNumber);
+                card.setIssueDate(new java.util.Date());
+                card.setExpiryDate(expiryDate);
+                card.setStatus("ACTIVE");
+                card.setReader(reader);
+                card.setCreatedDate(new Timestamp(System.currentTimeMillis()));
+                card.setIsDeleted(false);
+
+
+
                 try {
                     accountRepository.save(account);
                     reader.setAccount(account);
                     readerRepository.save(reader);
+                    Wallet readerWallet = Wallet.builder()
+                            .balance(new BigDecimal(0))
+                            .reader(reader)
+                            .status("ACTIVE")
+                            .lastUpdated(new Date(System.currentTimeMillis()))
+                            .build();
+                    walletRepository.save(readerWallet);
+                    libraryCardRepository.save(card);
                     emailService.sendAccountInfor(account.getEmail(), account.getUsername(), rawPassword);
                 } catch (Exception e) {
                     throw new RuntimeException("Import failed: " + e.getMessage(), e);
@@ -465,5 +495,11 @@ public class AccountServiceImpl implements AccountService {
         return cellValue;
     }
 
+    private String generateCardNumber() {
+        Calendar calendar = Calendar.getInstance();
+        int year = calendar.get(Calendar.YEAR);
+        String randomPart = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+        return String.format("EL-%d-%s", year, randomPart);
+    }
 
 }
