@@ -12,6 +12,7 @@ import com.library.librarymanagement.repository.EventRepository;
 import com.library.librarymanagement.repository.SystemUserRepository;
 import com.library.librarymanagement.repository.account.AccountRepository;
 import com.library.librarymanagement.service.custom_user_details.CustomUserDetails;
+import com.library.librarymanagement.service.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -44,6 +45,7 @@ public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
     private final SystemUserRepository systemUserRepository;
     private final AccountRepository accountRepository;
+    private final NotificationService notificationService;
     
     @Override
     @Transactional(readOnly = true)
@@ -147,6 +149,13 @@ public class EventServiceImpl implements EventService {
             Event savedEvent = eventRepository.save(event);
             
             log.info("Event created successfully with ID: {}", savedEvent.getId());
+            try {
+                // Broadcast NEW_EVENT notification to READER and ADMIN users
+                notificationService.sendNewEventNotification(savedEvent.getId(), savedEvent.getTitle());
+                log.info("\uD83D\uDCC5 NEW_EVENT notifications dispatched for event ID: {}", savedEvent.getId());
+            } catch (Exception notifyEx) {
+                log.error("Failed to dispatch NEW_EVENT notifications for event {}: {}", savedEvent.getId(), notifyEx.getMessage());
+            }
             
             return ApiResponse.builder()
                     .success(true)
@@ -438,6 +447,52 @@ public class EventServiceImpl implements EventService {
                     .success(false)
                     .message("Error calculating statistics: " + e.getMessage())
                     .build();
+        }
+    }
+    
+    @Override
+    @Transactional
+    public void autoUpdateEventStatus() {
+        try {
+            log.info("🔄 Starting auto-update event status task");
+            
+            // Get all non-deleted events
+            List<Event> allEvents = eventRepository.findAll().stream()
+                    .filter(event -> !event.getIsDeleted())
+                    .collect(Collectors.toList());
+            
+            int updatedCount = 0;
+            
+            for (Event event : allEvents) {
+                // Skip if manually cancelled
+                if ("cancelled".equalsIgnoreCase(event.getStatus())) {
+                    continue;
+                }
+                
+                // Skip if no date/time information
+                if (event.getEventDate() == null) {
+                    continue;
+                }
+                
+                String newStatus = calculateEventStatus(event);
+                String oldStatus = event.getStatus();
+                
+                // Update if status changed
+                if (!newStatus.equalsIgnoreCase(oldStatus)) {
+                    event.setStatus(newStatus);
+                    event.setUpdatedDate(new Date());
+                    eventRepository.save(event);
+                    updatedCount++;
+                    
+                    log.info("✅ Event ID {} status updated: {} → {}", 
+                            event.getId(), oldStatus, newStatus);
+                }
+            }
+            
+            log.info("🔄 Auto-update event status completed. Updated {} events", updatedCount);
+            
+        } catch (Exception e) {
+            log.error("❌ Error in auto-update event status task", e);
         }
     }
 }

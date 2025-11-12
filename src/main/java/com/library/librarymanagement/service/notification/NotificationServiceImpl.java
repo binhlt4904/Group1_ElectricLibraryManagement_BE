@@ -53,7 +53,7 @@ public class NotificationServiceImpl implements NotificationService {
         Notification savedNotification = notificationRepository.save(notification);
 
         // Send real-time notification via WebSocket
-        sendWebSocketNotification(toUser.getId(), mapToDto(savedNotification));
+        sendWebSocketNotification(toUser.getUsername(), mapToDto(savedNotification));
 
         log.info("Notification sent to user: {}", toUser.getUsername());
         return mapToDto(savedNotification);
@@ -153,7 +153,7 @@ public class NotificationServiceImpl implements NotificationService {
             Notification saved = notificationRepository.save(notification);
             log.info("✅ Notification saved to DB with ID: {} for user: {}", saved.getId(), user.getUsername());
             
-            sendWebSocketNotification(user.getId(), mapToDto(saved));
+            sendWebSocketNotification(user.getUsername(), mapToDto(saved));
         });
 
         log.info("📘 New book notification completed for {} users - Book: {}", allUsers.size(), bookTitle);
@@ -162,10 +162,27 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public void sendNewEventNotification(Long eventId, String eventTitle) {
         // Get all users and send notification
-        List<Account> allUsers = accountRepository.findAll();
-        log.info("📅 Sending new event notification to {} users for event: {}", allUsers.size(), eventTitle);
+        log.info("📅 [NEW EVENT] Starting notification broadcast:");
+        log.info("   → Event ID: {}", eventId);
+        log.info("   → Event Title: {}", eventTitle);
+        
+        List<Account> accountsToNotify = accountRepository.findAll();
+        
+        log.info("   → Total users to notify: {}", accountsToNotify.size());
+        
+        if (accountsToNotify.isEmpty()) {
+            log.warn("⚠️ [NEW EVENT] No users found in database!");
+            return;
+        }
+        
+        log.info("📋 [NEW EVENT] Users to notify:");
+        accountsToNotify.forEach(user -> 
+            log.info("   • {} (ID: {}, Role: {})", user.getUsername(), user.getId(), user.getRole().getName())
+        );
 
-        allUsers.forEach(user -> {
+        accountsToNotify.forEach(user -> {
+            log.info("   → Processing user: {} (ID: {})", user.getUsername(), user.getId());
+            
             Notification notification = Notification.builder()
                     .title("New Event")
                     .description("A new event '" + eventTitle + "' has been created")
@@ -177,12 +194,12 @@ public class NotificationServiceImpl implements NotificationService {
                     .build();
 
             Notification saved = notificationRepository.save(notification);
-            log.info("✅ Notification saved to DB with ID: {} for user: {}", saved.getId(), user.getUsername());
+            log.info("   ✅ Notification saved to DB with ID: {} for user: {}", saved.getId(), user.getUsername());
             
-            sendWebSocketNotification(user.getId(), mapToDto(saved));
+            sendWebSocketNotification(user.getUsername(), mapToDto(saved));
         });
 
-        log.info("📅 New event notification completed for {} users - Event: {}", allUsers.size(), eventTitle);
+        log.info("📅 [NEW EVENT] Notification broadcast completed for {} users", accountsToNotify.size());
     }
 
     @Override
@@ -207,7 +224,7 @@ public class NotificationServiceImpl implements NotificationService {
                         .build();
 
                 Notification saved = notificationRepository.save(notification);
-                sendWebSocketNotification(user.getId(), mapToDto(saved));
+                sendWebSocketNotification(user.getUsername(), mapToDto(saved));
             }
         });
 
@@ -236,27 +253,31 @@ public class NotificationServiceImpl implements NotificationService {
                         .build();
 
                 Notification saved = notificationRepository.save(notification);
-                sendWebSocketNotification(user.getId(), mapToDto(saved));
+                sendWebSocketNotification(user.getUsername(), mapToDto(saved));
             }
         });
 
         log.info("Overdue notifications sent for {} books", overdueRecords.size());
     }
 
-    private void sendWebSocketNotification(Long userId, NotificationDto notificationDto) {
+    private void sendWebSocketNotification(String username, NotificationDto notificationDto) {
         try {
-            log.debug("🔔 Sending WebSocket notification to user {} - Type: {}, Title: {}", 
-                    userId, notificationDto.getNotificationType(), notificationDto.getTitle());
+            log.info("🔔 [WebSocket] Attempting to send notification:");
+            log.info("   → Target username: {}", username);
+            log.info("   → Destination: /user/{}/queue/notifications", username);
+            log.info("   → Notification Type: {}", notificationDto.getNotificationType());
+            log.info("   → Notification Title: {}", notificationDto.getTitle());
+            log.info("   → Notification ID: {}", notificationDto.getId());
             
             messagingTemplate.convertAndSendToUser(
-                    userId.toString(),
+                    username,
                     "/queue/notifications",
                     notificationDto
             );
             
-            log.debug("✅ WebSocket notification sent successfully to user {}", userId);
+            log.info("✅ [WebSocket] Message sent to broker for user: {}", username);
         } catch (Exception e) {
-            log.error("❌ Failed to send WebSocket notification to user {}: {}", userId, e.getMessage(), e);
+            log.error("❌ [WebSocket] Failed to send notification to user {}: {}", username, e.getMessage(), e);
         }
     }
 

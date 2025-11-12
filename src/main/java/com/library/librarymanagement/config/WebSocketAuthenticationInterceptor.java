@@ -36,6 +36,9 @@ public class WebSocketAuthenticationInterceptor implements ChannelInterceptor {
         if (StompCommand.CONNECT.equals(accessor.getCommand())) {
             log.debug("Processing STOMP CONNECT command");
             String authHeader = accessor.getFirstNativeHeader("Authorization");
+            if (authHeader == null) {
+                authHeader = accessor.getFirstNativeHeader("authorization");
+            }
 
             if (authHeader != null && authHeader.startsWith("Bearer ")) {
                 log.debug("Authorization header found in STOMP CONNECT");
@@ -61,7 +64,9 @@ public class WebSocketAuthenticationInterceptor implements ChannelInterceptor {
                             );
                             SecurityContextHolder.getContext().setAuthentication(auth);
                             accessor.setUser(auth);
-                            log.info("WebSocket user authenticated: {}", username);
+                            log.info("✅ [WebSocket Auth] User authenticated and Principal set:");
+                            log.info("   → Username (Principal name): {}", username);
+                            log.info("   → Will receive messages at: /user/{}/queue/notifications", username);
                         } else {
                             log.warn("Invalid token for user: {}", username);
                             accessor.setUser(null);
@@ -75,6 +80,13 @@ public class WebSocketAuthenticationInterceptor implements ChannelInterceptor {
             } else {
                 log.warn("No Authorization header found in STOMP CONNECT frame");
             }
+        }
+
+        // Log subscriptions to verify destination and principal
+        if (StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
+            String destination = accessor.getDestination();
+            String principal = accessor.getUser() != null ? accessor.getUser().getName() : null;
+            log.info("[WebSocket] SUBSCRIBE: destination={}, principal={}", destination, principal);
         }
 
         return message;

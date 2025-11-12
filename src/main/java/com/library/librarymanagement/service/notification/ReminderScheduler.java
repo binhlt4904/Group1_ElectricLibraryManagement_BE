@@ -1,5 +1,6 @@
 package com.library.librarymanagement.service.notification;
 
+import com.library.librarymanagement.service.event.EventService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Component;
 public class ReminderScheduler {
 
     private final NotificationService notificationService;
+    private final EventService eventService;
 
     /**
      * Send reminder notifications for books due in 3 days
@@ -43,6 +45,22 @@ public class ReminderScheduler {
             log.info("Overdue notifications sent successfully");
         } catch (Exception e) {
             log.error("Error sending overdue notifications: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Auto-update event status based on current date/time
+     * Runs every 30 minutes to update event statuses: upcoming -> ongoing -> completed
+     * Cron expression: 0 (slash)30 * * * * (second, minute, hour, day, month, day-of-week)
+     */
+    @Scheduled(cron = "0 */30 * * * *", zone = "Asia/Ho_Chi_Minh")
+    public void autoUpdateEventStatus() {
+        log.info("Starting scheduled task: Auto-update event status");
+        try {
+            eventService.autoUpdateEventStatus();
+            log.info("Event status auto-update completed successfully");
+        } catch (Exception e) {
+            log.error("Error in auto-update event status: {}", e.getMessage(), e);
         }
     }
 }

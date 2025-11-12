@@ -38,4 +38,10 @@ public interface EventService {
      * Returns aggregated statistics: upcoming events, total registrations, ongoing events, avg attendance
      */
     ApiResponse getEventStatistics();
+    
+    /**
+     * Auto-update event status based on current date/time
+     * Scheduled task to update event statuses: upcoming -> ongoing -> completed
+     */
+    void autoUpdateEventStatus();
 }

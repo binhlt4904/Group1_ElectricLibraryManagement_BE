@@ -1,10 +1,5 @@
 package com.library.librarymanagement.service.account;// src/main/java/edu/lms/service/impl/ReaderServiceImpl.java
 
-import com.library.librarymanagement.dto.response.ReaderDetailDto;
-import com.library.librarymanagement.entity.Account;
-import com.library.librarymanagement.entity.Reader;
-import com.library.librarymanagement.repository.ReaderRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -12,6 +7,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+
+import com.library.librarymanagement.dto.response.ReaderDetailDto;
+import com.library.librarymanagement.entity.Account;
+import com.library.librarymanagement.entity.Reader;
+import com.library.librarymanagement.repository.ReaderRepository;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +31,7 @@ public class ReaderServiceImpl implements ReaderService {
 
         Account a = r.getAccount();
         return ReaderDetailDto.builder()
+                .id(r.getId())
                 .email(a.getEmail())
                 .fullName(a.getFullName())
                 .username(a.getUsername())
@@ -56,6 +59,7 @@ public class ReaderServiceImpl implements ReaderService {
         return readers.map(r -> {
             Account a = r.getAccount();
             return ReaderDetailDto.builder()
+                    .id(r.getId())
                     .email(a.getEmail())
                     .fullName(a.getFullName())
                     .username(a.getUsername())

@@ -19,7 +19,7 @@ public class Event {
     @Column(name = "title", length = 255)
     private String title;
 
-    @Column(name = "description", length = 255)
+    @Column(name = "description", columnDefinition = "LONGTEXT")
     private String description;
 
     @Column(name = "event_date")

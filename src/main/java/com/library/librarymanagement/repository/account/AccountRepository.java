@@ -9,6 +9,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+import java.util.List;
+import java.util.Collection;
 
 @Repository
 public interface AccountRepository extends JpaRepository<Account, Long> {
@@ -18,6 +20,15 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
     Optional<Account> findByEmail(String email);
     boolean existsByUsernameIgnoreCase(String username);
     boolean existsByEmailIgnoreCase(String email);
+
+    List<Account> findAllByRole_NameIn(Collection<String> roleNames);
+
+    @Query("""
+           SELECT a FROM Account a
+           WHERE a.role.name IN :roleNames
+           """)
+    List<Account> findAccountsByRoleNames(@Param("roleNames") Collection<String> roleNames);
+
     @Query("""
            SELECT a
            FROM Account a

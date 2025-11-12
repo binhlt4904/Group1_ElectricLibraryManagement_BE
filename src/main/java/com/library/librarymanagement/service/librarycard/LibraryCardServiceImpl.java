@@ -37,6 +37,7 @@ public class LibraryCardServiceImpl implements LibraryCardService {
     private final LibraryCardRepository libraryCardRepository;
     private final CardRenewalDetailsRepository renewalRepository;
     private final ReaderRepository readerRepository;
+    private final com.library.librarymanagement.service.notification.NotificationService notificationService;
     
     @Override
     @Transactional(readOnly = true)
@@ -256,11 +257,37 @@ public class LibraryCardServiceImpl implements LibraryCardService {
             LibraryCard card = libraryCardRepository.findById(cardId)
                     .orElseThrow(() -> new ObjectNotExistException("Library card not found with ID: " + cardId));
             
+            String oldStatus = card.getStatus();
             card.setStatus(status.toUpperCase());
             card.setUpdatedDate(new Timestamp(System.currentTimeMillis()));
             libraryCardRepository.save(card);
             
-            log.info("Card {} status updated to: {}", cardId, status);
+            log.info("Card {} status updated from {} to: {}", cardId, oldStatus, status);
+            
+            // Send notification if card is suspended
+            if ("SUSPENDED".equalsIgnoreCase(status)) {
+                try {
+                    Reader reader = card.getReader();
+                    if (reader != null && reader.getAccount() != null) {
+                        log.info("📧 Sending suspension notification to user: {}", reader.getAccount().getUsername());
+                        notificationService.sendNotification(
+                            com.library.librarymanagement.dto.request.SendNotificationRequest.builder()
+                                .title("Library Card Suspended")
+                                .description("Your library card " + card.getCardNumber() + " has been suspended. Please contact the library for more information.")
+                                .notificationType("CARD_SUSPENDED")
+                                .toUserId(reader.getAccount().getId())
+                                .relatedBookId(null)
+                                .relatedEventId(null)
+                                .relatedBorrowRecordId(null)
+                                .build()
+                        );
+                        log.info("✅ Suspension notification sent to user: {}", reader.getAccount().getUsername());
+                    }
+                } catch (Exception notifError) {
+                    log.error("❌ Failed to send suspension notification: {}", notifError.getMessage());
+                    // Don't fail the status update if notification fails
+                }
+            }
             
             return ApiResponse.builder()
                     .success(true)
