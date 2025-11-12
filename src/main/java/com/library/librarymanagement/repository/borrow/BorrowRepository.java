@@ -44,4 +44,6 @@ public interface BorrowRepository extends JpaRepository<BorrowRecord, Long>, Jpa
             @Param("startOfTomorrow") Date startOfTomorrow,
             @Param("endOfTomorrow") Date endOfTomorrow
     );
+
+    List<BorrowRecord> findAllByLibraryCardId(Long libraryCardId);
 }

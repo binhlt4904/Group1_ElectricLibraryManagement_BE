@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.List;
 
 @RequiredArgsConstructor
 @Component
@@ -25,19 +26,47 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
 
+    private static final List<String> PUBLIC_ENDPOINTS = List.of(
+            "/api/v1/accounts/forget-password",
+            "/api/v1/accounts/reset-password",
+            "/api/v1/register",
+            "/api/v1/login",
+            "/api/v1/logout",
+            "/api/v1/refresh"
+    );
+
+    private static final List<String> PATH_STARTED = List.of(
+            "/uploads/",
+            "/api/v1/public/",
+            "/api/v1/reviews/",
+            "/api/v1/authors/"
+    );
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
         String path = request.getRequestURI();
 
-        // 🔹 1️⃣ Bỏ qua tất cả route public
-        if (path.startsWith("/api/v1/public/") || path.startsWith("/uploads/") || path.startsWith("/api/v1/reviews"))  {
-            filterChain.doFilter(request, response);
-            return;
+//        if (path.startsWith("/api/v1/public/") || path.startsWith("/uploads/") || path.startsWith("/api/v1/reviews"))  {
+//            filterChain.doFilter(request, response);
+//            return;
+//        }
+
+        for (String endpoint : PATH_STARTED) {
+            if (path.startsWith(endpoint)) {
+                filterChain.doFilter(request, response);
+                return;
+            }
         }
 
-        // 🔹 2️⃣ Lấy token trong header
+        for (String endpoint : PUBLIC_ENDPOINTS) {
+            if (path.equalsIgnoreCase(endpoint)) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+        }
+
         String header = request.getHeader("Authorization");
         if (header == null || !header.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
@@ -62,10 +91,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
         } catch (ExpiredJwtException e) {
-            log.warn("⚠️ Token expired for user: {}", username);
-            // Không return 401 ở đây nữa, để public route vẫn chạy
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
         } catch (Exception e) {
-            log.error("❌ JWT parsing error: {}", e.getMessage());
+            log.error("JWT parsing error: {}", e.getMessage());
         }
 
         filterChain.doFilter(request, response);

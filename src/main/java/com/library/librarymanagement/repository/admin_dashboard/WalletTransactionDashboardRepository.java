@@ -10,6 +10,6 @@ public interface WalletTransactionDashboardRepository extends JpaRepository<Wall
 
     @Query("SELECT COALESCE(SUM(wt.amount), 0) " +
             "FROM WalletTransaction wt " +
-            "WHERE wt.type = 'INCREASED' ")
+            "WHERE wt.type = 'INCREASE' ")
     BigDecimal sumAmountByTypeIncreasedAndStatusDone();
 }

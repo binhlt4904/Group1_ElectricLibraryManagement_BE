@@ -12,10 +12,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface AccountService {
     ApiResponse createAccount(AccountRequest accountRequest);
-    //lấy về toàn bộ account lọc theo fullname, status và role
     Page<AccountDto> findAll(String fullName, String status, Long roleId, int page, int size);
     CreateStaffResponse createStaff(CreateStaffRequest req);
     AccountDto updateAccount(Long accountId, UpdateAccountRequest req);
     void deleteAccount(Long accountId);
     void importReaders(MultipartFile file);
+    void forgetPassword(String email);
+    void resetPassword(String token, String newPassword);
 }

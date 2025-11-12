@@ -10,6 +10,6 @@ public class BookContentResponse {
     private String chapter;
     private String content;
     private String title;
-    private boolean isDeleted;
+    private Boolean isDeleted;
 
 }

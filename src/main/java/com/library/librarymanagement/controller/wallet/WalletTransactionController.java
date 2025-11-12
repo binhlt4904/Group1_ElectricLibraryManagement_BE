@@ -74,7 +74,7 @@ public class WalletTransactionController {
 
     @PostMapping("/{transactionId}/cancel")
     public ResponseEntity<?> cancelTransaction(@PathVariable Long transactionId) {
-        walletTransactionService.updateTransactionStatus(transactionId, "CANCELED");
+        walletTransactionService.updateTransactionStatus(transactionId, "CANCELLED");
         return ResponseEntity.ok().build();
     }
 

@@ -12,4 +12,5 @@ public class BookUpdateRequest {
     private Date publishedDate;
     private String category;
     private Boolean isDeleted;
+    private String description;
 }

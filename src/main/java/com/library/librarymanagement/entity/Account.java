@@ -55,4 +55,7 @@ public class Account {
     @OneToMany(mappedBy = "staff", fetch = FetchType.LAZY)
     private Set<BookReport> handledReports = new HashSet<>();
 
+    @OneToMany(mappedBy = "account", fetch = FetchType.LAZY)
+    private Set<PasswordResetToken> resetTokens = new HashSet<>();
+
 }

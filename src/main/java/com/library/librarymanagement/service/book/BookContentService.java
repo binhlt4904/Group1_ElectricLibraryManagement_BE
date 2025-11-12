@@ -44,7 +44,7 @@ public class BookContentService {
         return bookContentRepository.save(bookContent);
     }
 
-    public BookContent update(Long contentId, String title, Integer chapter, MultipartFile file) throws IOException {
+    public BookContent update(Long contentId, String title, Integer chapter, MultipartFile file, Boolean isDeleted) throws IOException {
 
         BookContent existing = bookContentRepository.findById(contentId)
                 .orElseThrow(() -> new IllegalArgumentException("Book content not found: " + contentId));
@@ -57,6 +57,8 @@ public class BookContentService {
         if (chapter != null) {
             existing.setChapter(chapter);
         }
+
+        existing.setIsDeleted(isDeleted);
 
         if (file != null && !file.isEmpty()) {
            String relativePath= saveBookContentFile(book, file);

@@ -14,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -21,10 +22,11 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/public/admin/books")
+@RequestMapping("/api/v1/admin/books")
 public class AdminBookController {
     private final BookService bookService;
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'LIBRARIAN')")
     @GetMapping(path="/")
     public ResponseEntity<?> getAllBooks(@RequestParam(defaultValue = "0") int page,
                                          @RequestParam(defaultValue = "4") int size,
@@ -39,6 +41,7 @@ public class AdminBookController {
         return ResponseEntity.ok(books);
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'LIBRARIAN')")
     @PostMapping(path="/", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> createBook(@ModelAttribute BookRequest book) throws IOException {
         System.out.println("Creating Book: " + book);
@@ -46,11 +49,13 @@ public class AdminBookController {
         return ResponseEntity.ok().build();
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'LIBRARIAN')")
     @GetMapping(path="/{id}")
     public ResponseEntity<?> getBookById(@PathVariable Long id) {
         return ResponseEntity.ok(bookService.getBookById(id));
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'LIBRARIAN')")
     @PatchMapping("/{id}")
     public ResponseEntity<?> updateBook(@PathVariable Long id, @RequestBody BookUpdateRequest book) {
         System.out.println("Id: " + id);
@@ -60,6 +65,7 @@ public class AdminBookController {
         return ResponseEntity.ok().build();
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'LIBRARIAN')")
     @GetMapping("/{id}/contents")
     public ResponseEntity<List<BookContentResponse>> getBookContents(@PathVariable Long id) {
         return ResponseEntity.ok(bookService.getBookContent(id));
