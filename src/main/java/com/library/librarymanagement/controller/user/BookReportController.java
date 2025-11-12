@@ -28,14 +28,14 @@ public class BookReportController {
     }
 
     @PostMapping("/{id}/assign")
-    @PreAuthorize("hasRole('STAFF')")
+    @PreAuthorize("hasRole('LIBRARIAN')")
     public ResponseEntity<?> assignReport(
             @PathVariable Long id) {
         return ResponseEntity.ok(bookReportService.assignReport(id));
     }
 
     @PostMapping("/{id}/update")
-    @PreAuthorize("hasRole('STAFF')")
+    @PreAuthorize("hasRole('LIBRARIAN')")
     public ResponseEntity<?> updateStatus(
             @PathVariable Long id,
             @RequestParam(required = false) String note) {
@@ -43,7 +43,7 @@ public class BookReportController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('STAFF','ADMIN')")
+    @PreAuthorize("hasAnyRole('LIBRARIAN','ADMIN')")
     public ResponseEntity<?> getAllReports(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String reportType,
@@ -57,7 +57,7 @@ public class BookReportController {
     }
 
     @GetMapping("/statistic")
-    @PreAuthorize("hasAnyRole('STAFF','ADMIN')")
+    @PreAuthorize("hasAnyRole('LIBRARIAN','ADMIN')")
     public ResponseEntity<?> getAllReportsStatistic(
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date fromDate,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date toDate

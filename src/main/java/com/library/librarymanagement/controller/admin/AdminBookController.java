@@ -15,6 +15,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -33,6 +35,9 @@ public class AdminBookController {
                                          @RequestParam(required = false) String search,
                                          @RequestParam(required = false) String category,
                                          @RequestParam(required = false) String status) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        System.out.println("👤 Username: " + authentication.getName());
+        System.out.println("🔒 Roles: " + authentication.getAuthorities());
         System.out.println("Page: " + page + ", Size: " + size);
         System.out.println("Fetching books with search: " + search + ", category: " + category + ", status: " + status);
         Pageable pageable = PageRequest.of(page, size, Sort.by("importedDate").descending());
