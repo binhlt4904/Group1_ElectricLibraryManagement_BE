@@ -76,7 +76,7 @@ public class BookReportController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "4") int size
     ) {
-        return ResponseEntity.ok(bookReportService.searchBookReport(search, status,reportType,fromDate,toDate, page, size));
+        return ResponseEntity.ok(bookReportService.searchBookReportBySpecReader(search, status,reportType,fromDate,toDate, page, size));
     }
 
     @GetMapping("/reader/statistic")
@@ -85,7 +85,7 @@ public class BookReportController {
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date fromDate,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date toDate
     ) {
-        return ResponseEntity.ok(bookReportService.searchBookReportStatistic(fromDate,toDate));
+        return ResponseEntity.ok(bookReportService.searchBookReportStatisticBySpecReader(fromDate,toDate));
     }
 
 }
