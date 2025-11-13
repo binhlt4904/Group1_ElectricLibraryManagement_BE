@@ -129,6 +129,10 @@ public class BookService {
 
             imageUrl = "/uploads/books/" + fileName; // 🔹 đường dẫn để frontend hiển thị
         }
+        Book existingBook = bookRepository.findByBookCode(req.getBookCode()).orElseThrow(() -> new RuntimeException("Book code already exists"));
+        if(existingBook != null) {
+            throw new RuntimeException("Book code already exists");
+        }
         Book book = new Book();
         book.setBookCode(req.getBookCode());
         book.setDescription(req.getDescription());

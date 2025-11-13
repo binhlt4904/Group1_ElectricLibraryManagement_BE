@@ -15,7 +15,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class DashboardExportServiceImpl implements DashboardExportService {
-    private final AdminStatisticsService stats; // tái dùng service thống kê bạn đã có
+    private final AdminStatisticsService stats;
 
     @Override
     public byte[] exportDashboardExcel(int year) {
@@ -49,8 +49,7 @@ public class DashboardExportServiceImpl implements DashboardExportService {
             // === Borrowing Trends (Current Year) ===
             List<BorrowingTrendResponse> trendData = stats.getBorrowingTrendsCurrentYear();
 
-            // Chuẩn hoá 12 tháng (1..12) rồi cộng dồn
-            int[] monthly = new int[12]; // mặc định 0
+            int[] monthly = new int[12];
             if (trendData != null) {
                 for (BorrowingTrendResponse t : trendData) {
                     int m = t.getMonth();
@@ -59,14 +58,12 @@ public class DashboardExportServiceImpl implements DashboardExportService {
                 }
             }
 
-            // Tính max/min và danh sách tháng đồng hạng
             int max = 0;
             int min = Integer.MAX_VALUE;
             for (int v : monthly) {
                 if (v > max) max = v;
                 if (v < min) min = v;
             }
-            // Nếu toàn 0, min = 0 là đúng (tháng ít nhất = tất cả các tháng)
             List<Integer> maxMonths = new ArrayList<>();
             List<Integer> minMonths = new ArrayList<>();
             for (int i = 0; i < 12; i++) {
@@ -74,11 +71,9 @@ public class DashboardExportServiceImpl implements DashboardExportService {
                 if (monthly[i] == min) minMonths.add(i + 1);
             }
 
-            // Ghép chuỗi hiển thị: "Feb (50), May (50) ..."
             String peakText   = monthlySummary(maxMonths, monthly);
             String lowestText = monthlySummary(minMonths, monthly);
 
-            // Ghi thêm 2 dòng vào Overview
             set(overview.createRow(r), 0, "Peak Borrowing Month(s)", text);     set(overview.getRow(r++), 1, peakText, text);
             set(overview.createRow(r), 0, "Lowest Borrowing Month(s)", text);   set(overview.getRow(r++), 1, lowestText, text);
 
@@ -122,7 +117,7 @@ public class DashboardExportServiceImpl implements DashboardExportService {
                 set(row, 1, safe(a.getTitle()),     text);
                 set(row, 2, safe(a.getDescription()), text);
                 set(row, 3, safe(a.getFromUser()),  text);
-                setDate(row, 4, a.getCreatedDate(), dt); // dùng java.util.Date + style
+                setDate(row, 4, a.getCreatedDate(), dt);
             }
             autosize(acts, 5);
 

@@ -172,8 +172,8 @@ public class WalletTransactionServiceImpl implements WalletTransactionService {
                         String content = txn.get("transaction_content").asText();
                         String amountInStr = txn.get("amount_in").asText();
 
-                        System.out.println("Nội dung: " + content);
-                        System.out.println("Tiền vào: " + amountInStr);
+//                        System.out.println("Nội dung: " + content);
+//                        System.out.println("Tiền vào: " + amountInStr);
                         String clearTransactionCode = transactionCode.replace("_", "");
 
 //                        System.out.println("clearTransactionCode: " + clearTransactionCode);

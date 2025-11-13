@@ -39,7 +39,7 @@ public class BorrowScheduleService {
 
         List<BorrowRecord> dueTomorrow = borrowRepository.findRecordsDueTomorrow(startOfTomorrow, endOfTomorrow);
         if (!dueTomorrow.isEmpty()) {
-            System.out.println("📧 Found " + dueTomorrow.size() + " borrow records due tomorrow");
+            System.out.println("Found " + dueTomorrow.size() + " borrow records due tomorrow");
             for (BorrowRecord record : dueTomorrow) {
                 String email = record.getLibraryCard()
                         .getReader()
@@ -62,9 +62,9 @@ public class BorrowScheduleService {
 
                 try {
                     mailService.sendMailToReminder(email, subject, message);
-                    System.out.println("📨 Sent reminder to " + email);
+                    System.out.println("Sent reminder to " + email);
                 } catch (Exception e) {
-                    System.err.println("⚠️ Failed to send mail to " + email + ": " + e.getMessage());
+                    System.err.println("Failed to send mail to " + email + ": " + e.getMessage());
                 }
             }
         }
@@ -72,9 +72,9 @@ public class BorrowScheduleService {
         int updatedCount = borrowRepository.markOverdueRecords(today);
 
         if (updatedCount > 0) {
-            System.out.println("✅ Scheduler: Updated " + updatedCount + " overdue borrow records at " + today);
+            System.out.println("Scheduler: Updated " + updatedCount + " overdue borrow records at " + today);
         } else {
-            System.out.println("ℹ️ Scheduler: No overdue borrow records to update today (" + today + ")");
+            System.out.println("Scheduler: No overdue borrow records to update today (" + today + ")");
         }
     }
 }
